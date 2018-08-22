@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AuxiliaryLibrary.WPF
+namespace AuxiliaryLibraries.WPF
 {
     public class BindingObject : IEventWrapper
     {
@@ -13,6 +13,7 @@ namespace AuxiliaryLibrary.WPF
 
         public virtual void OnPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
+           
         }
 
         protected void Notify(string propertyName)
