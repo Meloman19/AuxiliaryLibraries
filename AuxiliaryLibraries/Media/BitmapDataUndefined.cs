@@ -1,4 +1,4 @@
-﻿using AuxiliaryLibraries.Extension;
+﻿using AuxiliaryLibraries.Extensions;
 using AuxiliaryLibraries.Media.Quantization;
 using System;
 using System.Collections.Generic;
@@ -60,7 +60,7 @@ namespace AuxiliaryLibraries.Media
 
         public override BitmapDataBase Copy()
         {
-            return new BitmapDataUndefined(Width, Height, pixels.Copy());
+            return new BitmapDataUndefined(Width, Height, pixels.CopyArray());
         }
 
         public override byte[] GetData()
@@ -75,7 +75,7 @@ namespace AuxiliaryLibraries.Media
 
         public override Color[] GetPixels()
         {
-            return pixels.Copy();
+            return pixels.CopyArray();
         }
     }
 }

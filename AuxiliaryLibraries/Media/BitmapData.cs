@@ -1,4 +1,4 @@
-﻿using AuxiliaryLibraries.Extension;
+﻿using AuxiliaryLibraries.Extensions;
 using AuxiliaryLibraries.Media.Quantization;
 using System;
 using System.Collections.Generic;

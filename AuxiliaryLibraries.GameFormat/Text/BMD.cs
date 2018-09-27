@@ -1,5 +1,6 @@
-﻿using AuxiliaryLibraries.Extension;
+﻿using AuxiliaryLibraries.Extensions;
 using AuxiliaryLibraries.IO;
+using AuxiliaryLibraries.Tools;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -394,7 +395,7 @@ namespace AuxiliaryLibraries.GameFormat.Text
 
                 // return new MemoryStream(buffer);
             }
-            
+
             static byte[] getLastBlock(List<int> Addresses)
             {
                 int sum = 0;

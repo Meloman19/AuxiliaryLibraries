@@ -1,7 +1,7 @@
 ﻿using AuxiliaryLibraries.GameFormat;
 using AuxiliaryLibraries.GameFormat.Text;
 using AuxiliaryLibraries.Media;
-using AuxiliaryLibraries.Tool;
+using AuxiliaryLibraries.Tools;
 using System;
 using System.Collections.Generic;
 using System.Drawing;

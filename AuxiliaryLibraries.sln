@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuxiliaryLibraries", "Auxil
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuxiliaryLibraries.GameFormat", "AuxiliaryLibraries.GameFormat\AuxiliaryLibraries.GameFormat.csproj", "{C6BA79F6-0718-46E0-9A2F-FF4A54902D74}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuxiliaryLibraries.WPF.Wrapper", "AuxiliaryLibraries.WPF.Wrapper\AuxiliaryLibraries.WPF.Wrapper.csproj", "{0A70017F-E0FA-4266-87DC-7337BA58A234}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{C6BA79F6-0718-46E0-9A2F-FF4A54902D74}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C6BA79F6-0718-46E0-9A2F-FF4A54902D74}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C6BA79F6-0718-46E0-9A2F-FF4A54902D74}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0A70017F-E0FA-4266-87DC-7337BA58A234}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0A70017F-E0FA-4266-87DC-7337BA58A234}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0A70017F-E0FA-4266-87DC-7337BA58A234}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0A70017F-E0FA-4266-87DC-7337BA58A234}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,4 +1,4 @@
-﻿using AuxiliaryLibraries.Extension;
+﻿using AuxiliaryLibraries.Extensions;
 using System.IO;
 
 namespace AuxiliaryLibraries.GameFormat.SpriteContainer

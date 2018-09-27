@@ -1,6 +1,6 @@
-﻿using AuxiliaryLibraries.Extension;
-using AuxiliaryLibraries.GameFormat.Other.FNT;
-using AuxiliaryLibraries.Tool;
+﻿using AuxiliaryLibraries.Extensions;
+using AuxiliaryLibraries.GameFormat.Other;
+using AuxiliaryLibraries.Tools;
 using System;
 using System.Collections.Generic;
 using System.Linq;

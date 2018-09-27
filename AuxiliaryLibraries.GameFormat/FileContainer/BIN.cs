@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
+using AuxiliaryLibraries.Tools;
 
 namespace AuxiliaryLibraries.GameFormat.FileContainer
 {
@@ -42,13 +43,13 @@ namespace AuxiliaryLibraries.GameFormat.FileContainer
             IsLittleEndian = true;
             if (data.Length < 0x100)
                 throw new System.Exception("BIN: data length unacceptable");
-            using (BinaryReader reader = IO.IOTools.OpenReadFile(new MemoryStream(data), true))
+            using (BinaryReader reader = IOTools.OpenReadFile(new MemoryStream(data), IsLittleEndian, false))
                 while (reader.BaseStream.Position < reader.BaseStream.Length - 0x100)
                 {
                     string Name = Encoding.ASCII.GetString(reader.ReadBytes(0x100 - 4)).Trim('\0');
                     int Size = reader.ReadInt32();
                     byte[] Data = reader.ReadBytes(Size);
-                    reader.BaseStream.Position += IO.IOTools.Alignment(reader.BaseStream.Position, 0x40);
+                    reader.BaseStream.Position += IOTools.Alignment(reader.BaseStream.Position, 0x40);
 
                     ObjectContainer objectFile = GameFormatHelper.OpenFile(Name, Data, GameFormatHelper.GetFormat(Name));
                     if (objectFile.Object == null)
@@ -59,7 +60,7 @@ namespace AuxiliaryLibraries.GameFormat.FileContainer
 
         private void OpenNew(byte[] data)
         {
-            using (BinaryReader reader = IO.IOTools.OpenReadFile(new MemoryStream(data), IsLittleEndian))
+            using (BinaryReader reader = IOTools.OpenReadFile(new MemoryStream(data), IsLittleEndian))
             {
                 int count = reader.ReadInt32();
                 if (count == 0)
@@ -117,7 +118,7 @@ namespace AuxiliaryLibraries.GameFormat.FileContainer
                     {
                         returned += 0x100;
                         returned += file.GetSize();
-                        returned += IO.IOTools.Alignment(returned, 0x40);
+                        returned += IOTools.Alignment(returned, 0x40);
                     }
                 returned += 0x100;
             }
@@ -129,7 +130,7 @@ namespace AuxiliaryLibraries.GameFormat.FileContainer
                     {
                         returned += 0x20 + 4;
                         int size = file.GetSize();
-                        int align = IO.IOTools.Alignment(size, 0x20);
+                        int align = IOTools.Alignment(size, 0x20);
                         returned += size + align;
                     }
             }
@@ -151,7 +152,7 @@ namespace AuxiliaryLibraries.GameFormat.FileContainer
         {
             using (MemoryStream MS = new MemoryStream())
             {
-                BinaryWriter writer = IO.IOTools.OpenWriteFile(MS, IsLittleEndian);
+                BinaryWriter writer = IOTools.OpenWriteFile(MS, IsLittleEndian);
 
                 foreach (var a in SubFiles)
                     if (a.Object is IGameFile pfile)
@@ -167,7 +168,7 @@ namespace AuxiliaryLibraries.GameFormat.FileContainer
                         }
                         writer.Write(size);
                         writer.Write(data);
-                        writer.Write(new byte[IO.IOTools.Alignment(MS.Position, 0x40)]);
+                        writer.Write(new byte[IOTools.Alignment(MS.Position, 0x40)]);
                     }
 
                 writer.Write(new byte[0x100]);
@@ -180,16 +181,16 @@ namespace AuxiliaryLibraries.GameFormat.FileContainer
         {
             using (MemoryStream MS = new MemoryStream())
             {
-                BinaryWriter writer = IO.IOTools.OpenWriteFile(MS, IsLittleEndian);
+                BinaryWriter writer = IOTools.OpenWriteFile(MS, IsLittleEndian);
 
                 writer.Write((int)SubFiles.Count);
                 foreach (var a in SubFiles)
                     if (a.Object is IGameFile file)
                     {
                         writer.Write(Encoding.ASCII.GetBytes(a.Name));
-                        writer.Write(new byte[IO.IOTools.Alignment(a.Name.Length, 0x20)]);
+                        writer.Write(new byte[IOTools.Alignment(a.Name.Length, 0x20)]);
                         int size = file.GetSize();
-                        int align = IO.IOTools.Alignment(size, 0x20);
+                        int align = IOTools.Alignment(size, 0x20);
                         writer.Write(size + align);
                         writer.Write(file.GetData());
                         writer.Write(new byte[align]);

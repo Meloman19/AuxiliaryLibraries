@@ -1,4 +1,6 @@
-﻿using AuxiliaryLibraries.Extension;
+﻿using AuxiliaryLibraries.Extensions;
+using AuxiliaryLibraries.GameFormat.Other;
+using AuxiliaryLibraries.Tools;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,24 +11,66 @@ namespace AuxiliaryLibraries.GameFormat.FileContainer
 {
     public class PM1 : IGameFile
     {
-        enum TypeMap
+        #region Private Classes and Enum
+
+        enum TypeMap : int
         {
             FileList = 0x1,
-            T3HeadList = 0x2,
+            T3 = 0x2,
             RMDHead = 0x3,
             BMD = 0x6,
             EPLHead = 0x7,
             EPL = 0x8,
-            RMD = 0x9
+            RMD = 0x9,
+            TMXHead = 0x16,
+            TMX = 0x17,
+            CTable = 0x1B
         }
 
-        byte[] Unknown;
+        #endregion
 
-        int textsize = 0x20;
+        #region Read Only
 
-        int[][] Table;
+        readonly int textsize = 0x20;
+        readonly int MagicNumber = 0x31444D50;
 
-        public List<ObjectContainer> HidList { get; } = new List<ObjectContainer>();
+        #endregion
+
+        #region Private Fields
+
+        private byte[] Unknown;
+
+        private List<ObjectContainer> HidList = new List<ObjectContainer>();
+
+        private static int[] MainFileList = new int[]
+        {
+            0x1,
+            0x2,
+            0x3,
+            0x6,
+            0x7,
+            0x8,
+            0x9,
+            0x16,
+            0x17,
+            0x1B
+        };
+
+        private static int[] NamedFilesList = new int[]
+        {
+            0x2,
+            0x3,
+            0x6,
+            0x7,
+            0x16,
+            0x1B
+        };
+
+        private bool IsLittleEndian { get; set; } = true;
+
+        #endregion
+
+        #region Constructors
 
         public PM1(Stream stream)
         {
@@ -45,125 +89,543 @@ namespace AuxiliaryLibraries.GameFormat.FileContainer
                 Read(MS);
         }
 
-        private static int[] MainFileList = new int[]
-        {
-            0x1,
-            0x3,
-            0x6,
-            0x7,
-            0x8,
-            0x9
-        };
+        #endregion
 
         private void Read(Stream stream)
         {
-            BinaryReader reader = IO.IOTools.OpenReadFile(stream, IsLittleEndian);
-
-            stream.Position = 0x10;
-            int tablelinecount = reader.ReadInt32();
-            Unknown = reader.ReadBytes(12);
-            stream.Position = 0x20;
-            Table = reader.ReadInt32ArrayArray(tablelinecount, 4);
-
-            stream.Position = 0x20;
-
-            string[] list = ReadFileList(reader, Table.FirstOrDefault(x => x[0] == (int)TypeMap.FileList));
-            int ind = 0;
-
-            var RMDHead = Table.FirstOrDefault(x => x[0] == (int)TypeMap.RMDHead);
-            if (RMDHead != null && RMDHead[1] * RMDHead[2] > 0)
+            using (BinaryReader reader = IOTools.OpenReadFile(stream, IsLittleEndian))
             {
-                ReadRMD(reader, list.SubArray(ind, RMDHead[2]), RMDHead);
-                ind += RMDHead[2];
-            }
+                if (reader.ReadInt32() != 0)
+                    throw new Exception("PM1 Read (0x0): Not equal 0");
 
-            var BMD = Table.FirstOrDefault(x => x[0] == (int)TypeMap.BMD);
-            if (BMD != null && BMD[1] * BMD[2] > 0)
-            {
-                ReadBMD(reader, list.SubArray(ind, BMD[2]), BMD);
-                ind += BMD[2];
-            }
+                int fileSize = reader.ReadInt32();
 
-            var EPLHead = Table.FirstOrDefault(x => x[0] == (int)TypeMap.EPLHead);
-            if (EPLHead != null && EPLHead[1] * EPLHead[2] > 0)
-            {
-                ReadEPL(reader, list.SubArray(ind, EPLHead[2]), EPLHead, Table.FirstOrDefault(x => x[0] == (int)TypeMap.EPL));
-                ind += EPLHead[2];
-            }
+                if (reader.ReadInt32() != MagicNumber)
+                    throw new Exception("PM1 Read (0x8): Not equal MagicNumber");
+                if (reader.ReadInt32() != 0)
+                    throw new Exception("PM1 Read (0xC): Not equal 0 (padding?)");
 
-            if (ind != list.Length)
-            {
-                throw new Exception("PM1");
-            }
+                int tableElementCount = reader.ReadInt32();
 
-            foreach (var a in Table)
-                if (a[1] * a[2] > 0)
-                    if (!(MainFileList.Contains(a[0])))
+                Unknown = reader.ReadBytes(12);
+                var Table = reader.ReadInt32ArrayArray(tableElementCount, 4);
+
+                int readSize = 0x20 + tableElementCount * 0x10;
+
+                Dictionary<int, byte[][]> blocks = new Dictionary<int, byte[][]>();
+
+                foreach (var a in Table.Where(x => x[1] * x[2] > 0))
+                {
+                    stream.Position = a[3];
+                    byte[][] data = new byte[a[2]][];
+
+                    for (int i = 0; i < a[2]; i++)
                     {
-                        reader.BaseStream.Position = a[3];
-                        for (int i = 0; i < a[2]; i++)
+                        readSize += a[1];
+                        data[i] = reader.ReadBytes(a[1]);
+                    }
+
+                    blocks.Add(a[0], data);
+                }
+
+                if (readSize != fileSize)
+                    throw new Exception("PM1 Read: wrong file size");
+
+                ReadNamed(blocks);
+                ReadUnnamed(blocks);
+            }
+        }
+
+        private void ReadNamed(Dictionary<int, byte[][]> data)
+        {
+            string[] fileNameList = new string[0];
+            int fileNameIndex = 0;
+
+            void ReadSingleFile(TypeMap typeMap)
+            {
+                if (data[(int)typeMap].Length > 1)
+                    throw new Exception($"PM1 Read: {typeMap.ToString()}'s count more than 1");
+
+                string name = fileNameList[fileNameIndex++];
+                var singleFile = GameFormatHelper.OpenFile(name, data[(int)typeMap][0], GameFormatHelper.GetFormat(name));
+
+                if (singleFile.Object == null)
+                    singleFile = GameFormatHelper.OpenFile(name, data[(int)typeMap][0], FormatEnum.DAT);
+
+                singleFile.Tag = new object[] { (int)typeMap };
+                SubFiles.Add(singleFile);
+            }
+
+            if (data.ContainsKey((int)TypeMap.FileList))
+                fileNameList = data[(int)TypeMap.FileList].Select(x => Encoding.ASCII.GetString(x).TrimEnd('\0')).ToArray();
+            else
+            {
+                foreach (var a in MainFileList)
+                    if (data.ContainsKey(a))
+                        throw new Exception("PM1 Read: file contains named files");
+            }
+
+            // Read T3
+            if (data.ContainsKey((int)TypeMap.T3))
+                ReadSingleFile(TypeMap.T3);
+
+            // Read RMD
+            if (data.ContainsKey((int)TypeMap.RMDHead))
+            {
+                if (data.ContainsKey((int)TypeMap.RMD))
+                {
+                    if (data[(int)TypeMap.RMD].Length > 1)
+                        throw new Exception("PM1 Read: RMD's count more than 1");
+
+                    using (BinaryReader RMDreader = IOTools.OpenReadFile(data[(int)TypeMap.RMD][0], IsLittleEndian))
+                    {
+                        var rmdHeaders = data[(int)TypeMap.RMDHead]
+                            .Select(x =>
+                            {
+                                using (BinaryReader BR = IOTools.OpenReadFile(x, IsLittleEndian))
+                                    return BR.ReadInt32Array(8);
+                            })
+                            .ToArray();
+
+                        for (int i = 0; i < rmdHeaders.Length; i++)
                         {
-                            var temp = GameFormatHelper.OpenFile("", reader.ReadBytes(a[1]), FormatEnum.DAT);
-                            temp.Tag = a[0];
-                            HidList.Add(temp);
+                            RMDreader.BaseStream.Position = rmdHeaders[i][4] - rmdHeaders[0][4];
+                            var rmd = GameFormatHelper.OpenFile(fileNameList[fileNameIndex++], RMDreader.ReadBytes(rmdHeaders[i][5]), FormatEnum.DAT);
+                            rmd.Tag = new object[] { (int)TypeMap.RMD, rmdHeaders[i] };
+                            SubFiles.Add(rmd);
                         }
+                    }
+                }
+                else
+                    throw new Exception("PM1 Read: file contain RMD Header, but not RMD");
+            }
+
+            // Read BMD
+            if (data.ContainsKey((int)TypeMap.BMD))
+                ReadSingleFile(TypeMap.BMD);
+
+            // Read EPL
+            if (data.ContainsKey((int)TypeMap.EPLHead))
+            {
+                if (data.ContainsKey((int)TypeMap.EPL))
+                {
+                    if (data[(int)TypeMap.EPL].Length > 1)
+                        throw new Exception("PM1 Read: EPL's count more than 1");
+
+                    var eplHeaders = data[(int)TypeMap.EPLHead]
+                        .Select(x =>
+                        {
+                            using (BinaryReader BR = IOTools.OpenReadFile(x, IsLittleEndian))
+                                return BR.ReadInt32Array(4);
+                        })
+                        .ToArray();
+
+                    var eplList = data[(int)TypeMap.EPL][0].Split(eplHeaders.Select(x => x[1] - eplHeaders[0][1]).ToArray()).ToArray();
+
+                    for (int i = 0; i < eplList.Length; i++)
+                    {
+                        var epl = GameFormatHelper.OpenFile(fileNameList[fileNameIndex++], eplList[i], FormatEnum.DAT);
+                        epl.Tag = new object[] { (int)TypeMap.EPL, eplHeaders[i] };
+                        SubFiles.Add(epl);
+                    }
+                }
+                else
+                    throw new Exception("PM1 Read: file contain EPL Header, but not EPL");
+            }
+
+            // Read TMX
+            if (data.ContainsKey((int)TypeMap.TMXHead))
+            {
+                if (data.ContainsKey((int)TypeMap.TMX))
+                {
+                    if (data[(int)TypeMap.TMX].Length > 1)
+                        throw new Exception("PM1 Read: TMX's count more than 1");
+
+                    var tmxHeaders = data[(int)TypeMap.TMXHead]
+                        .Select(x =>
+                        {
+                            using (BinaryReader BR = IOTools.OpenReadFile(x, IsLittleEndian))
+                                return BR.ReadInt32Array(4);
+                        })
+                        .ToArray();
+
+                    var tmxList = data[(int)TypeMap.TMX][0].Split(tmxHeaders.Select(x => x[1] - tmxHeaders[0][1]).ToArray()).ToArray();
+
+                    for (int i = 0; i < tmxList.Length; i++)
+                    {
+                        var name = fileNameList[fileNameIndex++];
+                        var tmx = GameFormatHelper.OpenFile(name, tmxList[i], GameFormatHelper.GetFormat(name));
+                        tmx.Tag = new object[] { (int)TypeMap.TMX, tmxHeaders[i] };
+                        SubFiles.Add(tmx);
+                    }
+                }
+                else
+                    throw new Exception("PM1 Read: file contain TMX Header, but not TMX");
+            }
+
+            // Read CTable
+            if (data.ContainsKey((int)TypeMap.CTable))
+                ReadSingleFile(TypeMap.CTable);
+
+            if (fileNameIndex != fileNameList.Length)
+                throw new Exception("PM1 Read: not all files are read");
+        }
+
+        private void ReadUnnamed(Dictionary<int, byte[][]> data)
+        {
+            int index = 0;
+            foreach (var el in data)
+                if (!MainFileList.Contains(el.Key))
+                    foreach (var a in el.Value)
+                    {
+                        //throw new Exception("PM1: Unknown");
+                        string name = $"Noname({index.ToString().PadLeft(2, '0')}).DAT";
+                        while (SubFiles.Exists(x => x.Name == name))
+                        {
+                            index++;
+                            name = $"Noname({index.ToString().PadLeft(2, '0')}).DAT";
+                        }
+
+                        var temp = GameFormatHelper.OpenFile(name, a, FormatEnum.DAT);
+                        temp.Tag = new object[] { el.Key };
+                        SubFiles.Add(temp);
                     }
         }
 
-        private void ReadRMD(BinaryReader reader, string[] names, int[] rmdhead)
+        private void Write(Stream stream)
         {
-            reader.BaseStream.Position = rmdhead[3];
-            int[][] RMD = reader.ReadInt32ArrayArray(rmdhead[2], 8);
+            Dictionary<int, byte[][]> blocks = new Dictionary<int, byte[][]>();
 
-            for (int i = 0; i < RMD.Length; i++)
+            var namedFiles = SubFiles.FindAll(x => MainFileList.Contains((int)(x.Tag as object[])[0]));
+
+            byte[][] fileNames = new byte[namedFiles.Count][];
+            for (int i = 0; i < namedFiles.Count; i++)
             {
-                reader.BaseStream.Position = RMD[i][4];
-                var returned = GameFormatHelper.OpenFile(names[i], reader.ReadBytes(RMD[i][5]), FormatEnum.DAT);
-                returned.Tag = new object[] { (int)TypeMap.RMD, RMD[i] };
-                SubFiles.Add(returned);
+                var temp = Encoding.ASCII.GetBytes(namedFiles[i].Name);
+                var name = new byte[32];
+                Buffer.BlockCopy(temp, 0, name, 0, temp.Length);
+
+                fileNames[i] = name;
+            }
+            blocks.Add((int)TypeMap.FileList, fileNames);
+
+            WriteNamed(blocks);
+            WriteUnnamed(blocks);
+            UpdateOffsets(blocks);
+
+            var table = CreateTable(blocks);
+
+            using (BinaryWriter writer = IOTools.OpenWriteFile(stream, IsLittleEndian))
+            {
+                writer.Write(0);
+                writer.Write(0);
+                writer.Write(MagicNumber);
+                writer.Write(0);
+                writer.Write(table.Length);
+                writer.Write(Unknown);
+
+                foreach (var a in table)
+                    writer.WriteInt32Array(a);
+
+                foreach (var a in table)
+                {
+                    var temp = blocks[a[0]];
+
+                    foreach (var b in temp)
+                        writer.Write(b);
+                }
+
+                int fileSize = (int)stream.Position;
+                stream.Position = 4;
+                writer.Write(fileSize);
             }
         }
 
-        private void ReadBMD(BinaryReader reader, string[] names, int[] bmd)
+        private void WriteNamed(Dictionary<int, byte[][]> data)
         {
-            reader.BaseStream.Position = bmd[3];
-            var returned = GameFormatHelper.OpenFile(names[0], reader.ReadBytes(bmd[1]), FormatEnum.BMD);
-            returned.Tag = new object[] { bmd[0] };
-            SubFiles.Add(returned);
+            void WriteSingleFile(TypeMap typeMap)
+            {
+                var TYPE = SubFiles.Find(x => (int)(x.Tag as object[])[0] == (int)typeMap);
+                if (TYPE != null)
+                {
+                    byte[][] type = new byte[1][];
+                    var temp = (TYPE.Object as IGameFile).GetData();
+
+                    int align = IOTools.Alignment(temp.Length, 16);
+                    byte[] tempType = null;
+                    if (align == 0)
+                        tempType = temp;
+                    else
+                    {
+                        tempType = new byte[temp.Length + align];
+                        Buffer.BlockCopy(temp, 0, tempType, 0, temp.Length);
+                    }
+
+                    type[0] = tempType;
+                    data.Add((int)typeMap, type);
+                }
+            }
+
+            // Write T3
+            WriteSingleFile(TypeMap.T3);
+
+            // Write RMD
+            var RMD = SubFiles.FindAll(x => (int)(x.Tag as object[])[0] == (int)TypeMap.RMD);
+            if (RMD.Count != 0)
+            {
+                byte[][] rmdHeader = new byte[RMD.Count][];
+                byte[][] rmd = new byte[1][];
+
+                int offset = 0;
+
+                using (MemoryStream MS = new MemoryStream())
+                {
+                    for (int i = 0; i < RMD.Count; i++)
+                    {
+                        byte[] temp = (RMD[i].Object as IGameFile).GetData();
+                        byte[] tempRMD = new byte[temp.Length + IOTools.Alignment(temp.Length, 16)];
+                        Buffer.BlockCopy(temp, 0, tempRMD, 0, temp.Length);
+                        MS.Write(tempRMD, 0, tempRMD.Length);
+
+                        var tempHeader = (RMD[i].Tag as object[])[1] as int[];
+                        tempHeader[4] = offset;
+                        tempHeader[5] = temp.Length;
+
+                        using (MemoryStream headerMS = new MemoryStream())
+                        using (BinaryWriter writer = IOTools.OpenWriteFile(headerMS, IsLittleEndian))
+                        {
+                            writer.WriteInt32Array(tempHeader);
+                            rmdHeader[i] = headerMS.ToArray();
+                        }
+
+                        offset += tempRMD.Length;
+                    }
+
+                    rmd[0] = MS.ToArray();
+                }
+
+                data.Add((int)TypeMap.RMD, rmd);
+                data.Add((int)TypeMap.RMDHead, rmdHeader);
+            }
+
+            // Write BMD
+            WriteSingleFile(TypeMap.BMD);
+
+            // Write EPL
+            var EPL = SubFiles.FindAll(x => (int)(x.Tag as object[])[0] == (int)TypeMap.EPL);
+            if (EPL.Count != 0)
+            {
+                byte[][] eplHeader = new byte[EPL.Count][];
+                byte[][] epl = new byte[1][];
+
+                int offset = 0;
+
+                using (MemoryStream MS = new MemoryStream())
+                {
+                    for (int i = 0; i < EPL.Count; i++)
+                    {
+                        byte[] temp = (EPL[i].Object as IGameFile).GetData();
+                        byte[] tempEPL = new byte[temp.Length + IOTools.Alignment(temp.Length, 16)];
+                        Buffer.BlockCopy(temp, 0, tempEPL, 0, temp.Length);
+                        MS.Write(tempEPL, 0, tempEPL.Length);
+
+                        var tempHeader = (EPL[i].Tag as object[])[1] as int[];
+                        tempHeader[1] = offset;
+
+                        using (MemoryStream headerMS = new MemoryStream())
+                        using (BinaryWriter writer = IOTools.OpenWriteFile(headerMS, IsLittleEndian))
+                        {
+                            writer.WriteInt32Array(tempHeader);
+                            eplHeader[i] = headerMS.ToArray();
+                        }
+
+                        offset += tempEPL.Length;
+                    }
+
+                    epl[0] = MS.ToArray();
+                }
+
+                data.Add((int)TypeMap.EPL, epl);
+                data.Add((int)TypeMap.EPLHead, eplHeader);
+            }
+
+            // Write TMX
+            var TMX = SubFiles.FindAll(x => (int)(x.Tag as object[])[0] == (int)TypeMap.TMX);
+            if (TMX.Count != 0)
+            {
+                byte[][] tmxHeader = new byte[TMX.Count][];
+                byte[][] tmx = new byte[1][];
+
+                int offset = 0;
+
+                using (MemoryStream MS = new MemoryStream())
+                {
+                    for (int i = 0; i < TMX.Count; i++)
+                    {
+                        byte[] temp = (TMX[i].Object as IGameFile).GetData();
+                        byte[] tempTMX = new byte[temp.Length + IOTools.Alignment(temp.Length, 16)];
+                        Buffer.BlockCopy(temp, 0, tempTMX, 0, temp.Length);
+                        MS.Write(tempTMX, 0, tempTMX.Length);
+
+                        var tempHeader = (TMX[i].Tag as object[])[1] as int[];
+                        tempHeader[1] = offset;
+
+                        using (MemoryStream headerMS = new MemoryStream())
+                        using (BinaryWriter writer = IOTools.OpenWriteFile(headerMS, IsLittleEndian))
+                        {
+                            writer.WriteInt32Array(tempHeader);
+                            tmxHeader[i] = headerMS.ToArray();
+                        }
+
+                        offset += tempTMX.Length;
+                    }
+
+                    tmx[0] = MS.ToArray();
+                }
+
+                data.Add((int)TypeMap.TMX, tmx);
+                data.Add((int)TypeMap.TMXHead, tmxHeader);
+            }
+
+            // Write CTable
+            WriteSingleFile(TypeMap.CTable);
         }
 
-        private void ReadEPL(BinaryReader reader, string[] names, int[] eplhead, int[] epl)
+        private void WriteUnnamed(Dictionary<int, byte[][]> data)
         {
-            reader.BaseStream.Position = eplhead[3];
-            int[][] eplpos = reader.ReadInt32ArrayArray(eplhead[2], 4);
-
-            reader.BaseStream.Position = epl[3];
-            byte[] EPL = reader.ReadBytes(epl[1]);
-
-            var splited = EPL.SplitArray(eplpos.Select(x => x[1] - epl[3]).ToArray());
-
-            for (int i = 0; i < splited.Count; i++)
+            var unnamedFiles = SubFiles.FindAll(x => !MainFileList.Contains((int)(x.Tag as object[])[0]));
+            foreach (var a in unnamedFiles)
             {
-                var returned = GameFormatHelper.OpenFile(names[i], splited[i], FormatEnum.DAT);
-                returned.Tag = new object[] { (int)TypeMap.EPL, eplpos[i] };
-                SubFiles.Add(returned);
+                byte[][] type = new byte[1][];
+                var temp = (a.Object as IGameFile).GetData();
+
+                int align = IOTools.Alignment(temp.Length, 16);
+                byte[] tempType = null;
+                if (align == 0)
+                    tempType = temp;
+                else
+                {
+                    tempType = new byte[temp.Length + align];
+                    Buffer.BlockCopy(temp, 0, tempType, 0, temp.Length);
+                }
+
+                type[0] = tempType;
+                data.Add((int)(a.Tag as object[])[0], type);
             }
         }
 
-        private string[] ReadFileList(BinaryReader reader, int[] element)
+        private void UpdateOffsets(Dictionary<int, byte[][]> data)
         {
-            List<string> fileList = new List<string>();
-
-            if (element != null)
+            if (data.TryGetValue((int)TypeMap.RMDHead, out byte[][] rmdHead))
             {
-                reader.BaseStream.Position = element[3];
-                for (int i = 0; i < element[2]; i++)
-                    fileList.Add(System.Text.Encoding.ASCII.GetString(reader.ReadBytes(element[1]).Where(x => x != 0).ToArray()));
+                int offset = 0x20 + data.Count * 0x10;
+                for (int i = 0; i < (int)TypeMap.RMD; i++)
+                {
+                    if (data.TryGetValue(i, out byte[][] current))
+                    {
+                        foreach (var a in current)
+                            offset += a.Length;
+                    }
+                }
+
+                for (int i = 0; i < rmdHead.Length; i++)
+                {
+                    using (MemoryStream MS = new MemoryStream(rmdHead[i]))
+                    using (BinaryReader reader = IOTools.OpenReadFile(MS, IsLittleEndian))
+                    using (BinaryWriter writer = IOTools.OpenWriteFile(MS, IsLittleEndian))
+                    {
+                        MS.Position = 0x10;
+                        int headerOffset = reader.ReadInt32();
+                        headerOffset += offset;
+                        MS.Position = 0x10;
+                        writer.Write(headerOffset);
+                    }
+                }
             }
-            return fileList.ToArray();
+
+            if (data.TryGetValue((int)TypeMap.EPLHead, out byte[][] eplHead))
+            {
+                int offset = 0x20 + data.Count * 0x10;
+                for (int i = 0; i < (int)TypeMap.EPL; i++)
+                {
+                    if (data.TryGetValue(i, out byte[][] current))
+                    {
+                        foreach (var a in current)
+                            offset += a.Length;
+                    }
+                }
+
+                for (int i = 0; i < eplHead.Length; i++)
+                {
+                    using (MemoryStream MS = new MemoryStream(eplHead[i]))
+                    using (BinaryReader reader = IOTools.OpenReadFile(MS, IsLittleEndian))
+                    using (BinaryWriter writer = IOTools.OpenWriteFile(MS, IsLittleEndian))
+                    {
+                        MS.Position = 0x4;
+                        int headerOffset = reader.ReadInt32();
+                        headerOffset += offset;
+                        MS.Position = 0x4;
+                        writer.Write(headerOffset);
+                    }
+                }
+            }
+
+            if (data.TryGetValue((int)TypeMap.TMXHead, out byte[][] tmxHead))
+            {
+                int offset = 0x20 + data.Count * 0x10;
+                for (int i = 0; i < (int)TypeMap.TMX; i++)
+                {
+                    if (data.TryGetValue(i, out byte[][] current))
+                    {
+                        foreach (var a in current)
+                            offset += a.Length;
+                    }
+                }
+
+                for (int i = 0; i < tmxHead.Length; i++)
+                {
+                    using (MemoryStream MS = new MemoryStream(tmxHead[i]))
+                    using (BinaryReader reader = IOTools.OpenReadFile(MS, IsLittleEndian))
+                    using (BinaryWriter writer = IOTools.OpenWriteFile(MS, IsLittleEndian))
+                    {
+                        MS.Position = 0x4;
+                        int headerOffset = reader.ReadInt32();
+                        headerOffset += offset;
+                        MS.Position = 0x4;
+                        writer.Write(headerOffset);
+                    }
+                }
+            }
+
         }
 
-        public bool IsLittleEndian { get; set; } = true;
+        private int[][] CreateTable(Dictionary<int, byte[][]> data)
+        {
+            int[][] returned = new int[data.Count][];
+            int index = 0;
+
+            int maxIndex = data.Max(x => x.Key);
+            int offset = 0x20 + data.Count * 0x10;
+
+            for (int i = 0; i <= maxIndex; i++)
+            {
+                if (data.TryGetValue(i, out byte[][] current))
+                {
+                    int[] temp = new int[4];
+                    temp[0] = i;
+                    temp[1] = current[0].Length;
+                    temp[2] = current.Length;
+                    temp[3] = offset;
+
+                    foreach (var a in current)
+                        offset += a.Length;
+
+                    returned[index++] = temp;
+                }
+            }
+
+            return returned;
+        }
 
         #region IGameFile
 
@@ -177,136 +639,7 @@ namespace AuxiliaryLibraries.GameFormat.FileContainer
         {
             using (MemoryStream MS = new MemoryStream())
             {
-                BinaryWriter writer = IO.IOTools.OpenWriteFile(MS, IsLittleEndian);
-
-                var RMD = SubFiles.FindAll(x => (int)(x.Tag as object[])[0] == (int)TypeMap.RMD);
-                var BMD = SubFiles.Find(x => (int)(x.Tag as object[])[0] == (int)TypeMap.BMD);
-                var EPL = SubFiles.FindAll(x => (int)(x.Tag as object[])[0] == (int)TypeMap.EPL);
-
-                MS.Position = 0x20 + 0x10 * (1 + (RMD.Count == 0 ? 0 : 2) + (BMD == null ? 0 : 1) + (EPL.Count == 0 ? 0 : 2) + HidList.GroupBy(x => (int)x.Tag).Count());
-
-                List<int[]> table = new List<int[]>();
-
-                var filelist = SubFiles.Select(x => x.Name).ToArray();
-                table.Add(new int[]
-                {
-                    (int)TypeMap.FileList,
-                    textsize,
-                    filelist.Length,
-                    (int)MS.Position
-                });
-                foreach (var file in filelist)
-                    writer.WriteString(file, textsize);
-
-                long RMDHeadPos = 0;
-
-                if (RMD.Count != 0)
-                {
-                    table.Add(new int[]
-                    {
-                        (int)TypeMap.RMDHead,
-                        0x20,
-                        RMD.Count,
-                        (int)MS.Position
-                    });
-
-                    RMDHeadPos = MS.Position;
-                    MS.Position += RMD.Count * 0x20;
-
-                    table.Add(new int[]
-                    {
-                        (int)TypeMap.RMD,
-                        0,
-                        1,
-                        (int)MS.Position
-                    });
-                }
-
-                if (BMD != null)
-                {
-                    byte[] bmd = (BMD.Object as IGameFile).GetData();
-                    table.Add(new int[]
-                    {
-                        (int)TypeMap.BMD,
-                        bmd.Length + IO.IOTools.Alignment(bmd.Length, 0x10),
-                        1,
-                        (int)MS.Position
-                    });
-                    writer.Write(bmd);
-                    writer.Write(new byte[IO.IOTools.Alignment(bmd.Length, 0x10)]);
-                }
-
-                long EPLHeadPos = 0;
-
-                if (EPL.Count != 0)
-                {
-                    table.Add(new int[]
-                    {
-                        (int)TypeMap.EPLHead,
-                        0x10,
-                        EPL.Count,
-                        (int)MS.Position
-                    });
-
-                    EPLHeadPos = MS.Position;
-                    MS.Position += EPL.Count * 0x10;
-
-                    table.Add(new int[]
-                    {
-                        (int)TypeMap.EPL,
-                        0,
-                        1,
-                        (int)MS.Position
-                    });
-                }
-
-                foreach (var a in EPL)
-                {
-                    byte[] epl = (a.Object as IGameFile).GetData();
-                    table.Find(x => x[0] == (int)TypeMap.EPL)[1] += epl.Length + IO.IOTools.Alignment(epl.Length, 0x10);
-                    int[] eplhead = (int[])(a.Tag as object[])[1];
-                    eplhead[1] = (int)MS.Position;
-                    writer.Write(epl);
-                    MS.Position += IO.IOTools.Alignment(epl.Length, 0x10);
-                }
-
-                foreach (var a in RMD)
-                {
-                    byte[] rmd = (a.Object as IGameFile).GetData();
-                    table.Find(x => x[0] == (int)TypeMap.RMD)[1] += rmd.Length + IO.IOTools.Alignment(rmd.Length, 0x10);
-                    int[] rmdhead = (int[])(a.Tag as object[])[1];
-                    rmdhead[4] = (int)MS.Position;
-                    rmdhead[5] = rmd.Length;
-                    writer.Write(rmd);
-                    MS.Position += IO.IOTools.Alignment(rmd.Length, 0x10);
-                }
-
-                if (EPLHeadPos != 0)
-                {
-                    writer.BaseStream.Position = EPLHeadPos;
-                    foreach (var a in EPL)
-                        writer.WriteInt32Array((int[])(a.Tag as object[])[1]);
-                }
-
-                if (RMDHeadPos != 0)
-                {
-                    writer.BaseStream.Position = RMDHeadPos;
-                    foreach (var a in RMD)
-                        writer.WriteInt32Array((int[])(a.Tag as object[])[1]);
-                }
-
-                //  table.AddRange(Table.Where(x => !table.Exists(y => y[0] == x[0])));
-                table = table.OrderBy(x => x[0]).ToList();
-
-                MS.Position = 0x4;
-                writer.Write((int)MS.Length);
-                writer.Write(Encoding.ASCII.GetBytes("PMD1"));
-                MS.Position = 0x10;
-                writer.Write(table.Count);
-                writer.Write(Unknown);
-                MS.Position = 0x20;
-                foreach (var a in table)
-                    writer.WriteInt32Array(a);
+                Write(MS);
 
                 return MS.ToArray();
             }

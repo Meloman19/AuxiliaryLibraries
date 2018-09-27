@@ -1,4 +1,4 @@
-﻿using AuxiliaryLibraries.Extension;
+﻿using AuxiliaryLibraries.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -33,7 +33,7 @@ namespace AuxiliaryLibraries.Media.Quantization
 
         public Color[] GetQuantPalette()
         {
-            return palette.Copy();
+            return palette.CopyArray();
         }
 
         public void StartQuantization()

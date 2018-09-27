@@ -2,7 +2,7 @@
 using System.Drawing;
 using System.IO;
 
-namespace AuxiliaryLibraries.GameFormat.Other.FNT
+namespace AuxiliaryLibraries.GameFormat.Other
 {
     public class FNTPalette
     {
@@ -55,6 +55,15 @@ namespace AuxiliaryLibraries.GameFormat.Other.FNT
                 writer.Write(color.B);
                 writer.Write(color.A);
             }
+        }
+
+        public Color[] GetImagePalette()
+        {
+            List<Color> palette = new List<Color>();
+            foreach (var color in Pallete)
+                palette.Add(Color.FromArgb(0xFF, color));
+
+            return palette.ToArray();
         }
     }
 }

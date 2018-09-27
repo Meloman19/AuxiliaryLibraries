@@ -1,4 +1,4 @@
-﻿using AuxiliaryLibraries.Extension;
+﻿using AuxiliaryLibraries.Extensions;
 using AuxiliaryLibraries.Media.Quantization;
 using System;
 using System.Collections.Generic;
@@ -88,7 +88,7 @@ namespace AuxiliaryLibraries.Media
             => bitmapDataBase.GetPixels();
 
         public Color[] CopyPalette()
-            => bitmapDataBase.GetPalette()?.Copy();
+            => bitmapDataBase.GetPalette()?.CopyArray();
 
         #region Public Properties
 

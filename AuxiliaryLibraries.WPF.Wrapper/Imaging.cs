@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using AuxiliaryLibraries.WPF.Extensions;
 
-namespace TestApp
+namespace AuxiliaryLibraries.WPF.Wrapper
 {
-    public static class AuxWPFBinding
+    public static class Imaging
     {
         private static Dictionary<AuxiliaryLibraries.Media.PixelFormat, PixelFormat> AuxToWPFdic = new Dictionary<AuxiliaryLibraries.Media.PixelFormat, PixelFormat>()
         {
@@ -89,53 +89,6 @@ namespace TestApp
                 pix, bitmapSource.GetData(), colors);
             }
             return null;
-        }
-
-        public static byte[] GetData(this BitmapSource image)
-        {
-            var width = image.PixelWidth;
-            var height = image.PixelHeight;
-            var bitPerPixel = image.Format.BitsPerPixel;
-            var stride = GetStride(image.Format, width);
-
-            var LengthData = (height * width * bitPerPixel) / 8;
-
-            var returned = new byte[LengthData];
-            image.CopyPixels(returned, stride, 0);
-
-            return returned;
-        }
-
-        public static int GetStride(PixelFormat pixelFormat, int width)
-        {
-            return (pixelFormat.BitsPerPixel * width + 7) / 8;
-        }
-
-        public static void SaveToPNG(BitmapSource image, string path)
-        {
-            Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path)));
-            using (FileStream FS = new FileStream(path, FileMode.Create))
-            {
-                PngBitmapEncoder PNGencoder = new PngBitmapEncoder();
-
-                PNGencoder.Frames.Add(BitmapFrame.Create(image));
-                PNGencoder.Save(FS);
-            }
-        }
-
-        public static BitmapSource OpenPNG(string path)
-        {
-            return new BitmapImage(new Uri(Path.GetFullPath(path)));
-
-            //using (FileStream FS = new FileStream(path, FileMode.Open))
-            //{
-            //    var returned = new BitmapImage(new Uri(Path.GetFullPath(path)));
-            //    returned.BeginInit();
-            //    returned.StreamSource = FS;
-            //    returned.EndInit();
-
-            //    return returned;
-            //}
         }
     }
 }

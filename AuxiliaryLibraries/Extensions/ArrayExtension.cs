@@ -2,18 +2,18 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace AuxiliaryLibraries.Extension
+namespace AuxiliaryLibraries.Extensions
 {
     public static class ArrayExtension
     {
-        public static T[] Copy<T>(this T[] array)
+        public static T[] CopyArray<T>(this T[] array)
         {
             T[] returned = new T[array.Length];
             array.CopyTo(returned, 0);
             return returned;
         }
 
-        public static byte[] Copy<T>(this byte[] array)
+        public static byte[] Copy(this byte[] array)
         {
             byte[] returned = new byte[array.Length];
             Buffer.BlockCopy(array, 0, returned, 0, array.Length);
@@ -46,6 +46,7 @@ namespace AuxiliaryLibraries.Extension
         {
             List<T[]> returned = new List<T[]>();
 
+
             for (int i = 0; i < pos.Length - 1; i++)
             {
                 T[] temp = new T[pos[i + 1] - pos[i]];
@@ -58,6 +59,20 @@ namespace AuxiliaryLibraries.Extension
             returned.Add(temp2);
 
             return returned;
+        }
+
+        public static IEnumerable<T[]> Split<T>(this T[] array, int[] pos)
+        {
+            for (int i = 0; i < pos.Length - 1; i++)
+            {
+                T[] temp = new T[pos[i + 1] - pos[i]];
+                Array.Copy(array, pos[i], temp, 0, temp.Length);
+                yield return temp;
+            }
+
+            T[] temp2 = new T[array.Length - pos.Last()];
+            Array.Copy(array, pos.Last(), temp2, 0, temp2.Length);
+            yield return temp2;
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using AuxiliaryLibraries.Extension;
+﻿using AuxiliaryLibraries.Extensions;
+using AuxiliaryLibraries.Tools;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -62,7 +63,7 @@ namespace AuxiliaryLibraries.GameFormat.FileContainer
             else
                 IsLittleEndian = true;
 
-            BinaryReader reader = IO.IOTools.OpenReadFile(stream, IsLittleEndian);
+            BinaryReader reader = IOTools.OpenReadFile(stream, IsLittleEndian);
 
             stream.Position = 0x4;
             int fileSize = reader.ReadInt32();
@@ -156,7 +157,7 @@ namespace AuxiliaryLibraries.GameFormat.FileContainer
 
             using (MemoryStream MS = new MemoryStream())
             {
-                BinaryWriter writer = IO.IOTools.OpenWriteFile(MS, IsLittleEndian);
+                BinaryWriter writer = IOTools.OpenWriteFile(MS, IsLittleEndian);
 
                 writer.Write(0);
 

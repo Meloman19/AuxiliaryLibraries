@@ -1,9 +1,10 @@
 ﻿using AuxiliaryLibraries.IO;
+using AuxiliaryLibraries.Tools;
 using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace AuxiliaryLibraries.GameFormat.Other.FNT
+namespace AuxiliaryLibraries.GameFormat.Other
 {
     public class FNTLast
     {

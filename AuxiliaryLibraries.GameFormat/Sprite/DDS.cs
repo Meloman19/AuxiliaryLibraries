@@ -70,6 +70,7 @@ namespace AuxiliaryLibraries.GameFormat.Sprite
         public void SetBitmap(Bitmap bitmap)
         {
             DDSBase.SetBitmap(bitmap);
+            this.bitmap = null;
         }
 
         #endregion IImage

@@ -7,16 +7,36 @@
         xmlns:local="clr-namespace:TestApp"
         xmlns:wpf="clr-namespace:AuxiliaryLibraries.WPF.Interactivity;assembly=AuxiliaryLibraries.WPF"
         xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+        xmlns:wpfControls ="clr-namespace:AuxiliaryLibraries.WPF.Controls;assembly=AuxiliaryLibraries.WPF"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800" AllowDrop="True" Drop="Window_Drop">
 
     <Window.Resources>
     </Window.Resources>
     <Grid>
-        <Border Background="LightGray">
-            <Image Name="IMG" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" >
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
 
-            </Image>
-        </Border>
+        <Button Content="Click" Command="{Binding CommandAct}"/>
+
+        <Image Grid.Row="1" Stretch="Uniform">
+            <Image.Source>
+                <DrawingImage>
+                    <DrawingImage.Drawing>
+                        <ImageDrawing Rect="0,0,100,100" ImageSource="pack://siteoforigin:,,,/Resources/settings-work-tool.png" />
+                    </DrawingImage.Drawing>
+                    <!--<DrawingImage.Drawing>
+                        <DrawingGroup>
+                            <DrawingGroup.ClipGeometry>
+                                <RectangleGeometry Rect="{Binding ImageRect}"/>
+                            </DrawingGroup.ClipGeometry>
+                            
+                        </DrawingGroup>
+                    </DrawingImage.Drawing>-->
+                </DrawingImage>
+            </Image.Source>
+        </Image>
     </Grid>
 </Window>

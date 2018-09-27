@@ -1,4 +1,4 @@
-﻿using AuxiliaryLibraries.Extension;
+﻿using AuxiliaryLibraries.Extensions;
 using AuxiliaryLibraries.Media;
 using System;
 using System.Collections.Generic;
@@ -7,6 +7,8 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using AuxiliaryLibraries.GameFormat.Sprite;
+using AuxiliaryLibraries.WPF.Wrapper;
 
 namespace TestApp
 {
@@ -18,8 +20,6 @@ namespace TestApp
         public MainWindow()
         {
             InitializeComponent();
-
-
 
             //byte[] temp = new byte[10000000];
             //for (int i = 0; i < temp.Length; i++)
@@ -71,11 +71,14 @@ namespace TestApp
         {
             string[] path = (string[])e.Data.GetData("FileDrop");
 
-            AuxiliaryLibraries.GameFormat.Text.BMD bmd = new AuxiliaryLibraries.GameFormat.Text.BMD(File.ReadAllBytes(path[0]));
+            DDS dDS = new DDS(File.ReadAllBytes(path[0]));
 
-            //SaveToPNG(GetBitmapSource(fNT.GetBitmap()), @"D:\FNT.PNG");
+            var temp = new BitmapImage(new Uri(@"d:\PS3\Textures\гот\ps3\title\ps3_tittle_01.png"));
+            dDS.SetBitmap(temp.GetBitmap());
 
-            File.WriteAllBytes(@"d:\temp.bmd", bmd.GetData());
+            // IMG.Source = dDS.GetBitmap().GetBitmapSource();
+
+
         }
     }
 }

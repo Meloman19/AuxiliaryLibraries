@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace AuxiliaryLibraries.Tool
+namespace AuxiliaryLibraries.Tools
 {
     public static class StringTool
     {

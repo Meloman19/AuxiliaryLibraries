@@ -1,10 +1,11 @@
-﻿using System;
+﻿using AuxiliaryLibraries.IO;
+using System;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace AuxiliaryLibraries.IO
+namespace AuxiliaryLibraries.Tools
 {
     public static class IOTools
     {
@@ -40,9 +41,21 @@ namespace AuxiliaryLibraries.IO
             BinaryReader returned;
 
             if ((BitConverter.IsLittleEndian & IsLittleEndian) || !(BitConverter.IsLittleEndian | IsLittleEndian))
-                returned = new BinaryReader(stream, Encoding.ASCII, true);
+                returned = new BinaryReader(stream, Encoding.ASCII, leaveOpen);
             else
-                returned = new BinaryReaderEndian(stream, Encoding.ASCII, true);
+                returned = new BinaryReaderEndian(stream, Encoding.ASCII, leaveOpen);
+
+            return returned;
+        }
+
+        public static BinaryReader OpenReadFile(byte[] data, bool IsLittleEndian)
+        {
+            BinaryReader returned;
+
+            if ((BitConverter.IsLittleEndian & IsLittleEndian) || !(BitConverter.IsLittleEndian | IsLittleEndian))
+                returned = new BinaryReader(new MemoryStream(data), Encoding.ASCII, false);
+            else
+                returned = new BinaryReaderEndian(new MemoryStream(data), Encoding.ASCII, false);
 
             return returned;
         }

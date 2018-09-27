@@ -50,7 +50,11 @@ namespace AuxiliaryLibraries.WPF.Controls
                 var a = availableSize.Width / availableSize.Height;
                 var b = Rect.Width / Rect.Height;
 
-                var newsize = a > b ? new Size(b * availableSize.Height, availableSize.Height) : new Size(availableSize.Width, availableSize.Width / b);
+                Size newsize;
+                if (double.IsNaN(b))
+                    newsize = new Size();
+                else
+                    newsize = a > b ? new Size(b * availableSize.Height, availableSize.Height) : new Size(availableSize.Width, availableSize.Width / b);
 
                 foreach (UIElement child in this.Children)
                     child.Measure(ControlSize(child, newsize, Rect));
@@ -95,7 +99,11 @@ namespace AuxiliaryLibraries.WPF.Controls
                 {
                     var width = itemrect.Width * newsize.Width / rect.Width;
                     var height = itemrect.Height * newsize.Height / rect.Height;
-                    return new Size(width, height);
+
+                    if (double.IsNaN(width) | double.IsNaN(height))
+                        return new Size();
+                    else
+                        return new Size(width, height);
                 }
             }
 

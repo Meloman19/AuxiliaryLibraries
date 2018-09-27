@@ -1,7 +1,7 @@
 ﻿// Persona 3/4/5 font decompressor/compressor
 // Based on RikuKH3's decompressor algorithm
 
-using AuxiliaryLibraries.Extension;
+using AuxiliaryLibraries.Extensions;
 using AuxiliaryLibraries.Media;
 using System;
 using System.Collections.Generic;
@@ -10,7 +10,7 @@ using System.IO;
 using System.Text;
 using System.Xml.Linq;
 
-namespace AuxiliaryLibraries.GameFormat.Other.FNT
+namespace AuxiliaryLibraries.GameFormat.Other
 {
     public class FNT : IGameFile, IImage, ITable
     {
@@ -66,15 +66,6 @@ namespace AuxiliaryLibraries.GameFormat.Other.FNT
                 reader.BaseStream.Position = Header.LastPosition;
                 Last = new FNTLast(reader, Header.Glyphs.Count);
             }
-        }
-
-        private Color[] GetImagePalette(Color[] bitmapPalette)
-        {
-            List<Color> palette = new List<Color>();
-            foreach (var color in bitmapPalette)
-                palette.Add(Color.FromArgb(0xFF, color));
-
-            return palette.ToArray();
         }
 
         #region IGameFile
@@ -154,7 +145,7 @@ namespace AuxiliaryLibraries.GameFormat.Other.FNT
 
             }
 
-            return new Bitmap(width, height, currentPF, newData, GetImagePalette(Palette.Pallete));
+            return new Bitmap(width, height, currentPF, newData, Palette.GetImagePalette());
         }
 
         public void SetBitmap(Bitmap image)
@@ -167,7 +158,7 @@ namespace AuxiliaryLibraries.GameFormat.Other.FNT
             else
                 throw new Exception("FNT: Unknown Pixel Format");
 
-            var palette = GetImagePalette(Palette.Pallete);
+            var palette = Palette.GetImagePalette();
 
             var tempBitmap = image.ConvertTo(pixelFormat, palette).CopyData();
 
@@ -205,7 +196,7 @@ namespace AuxiliaryLibraries.GameFormat.Other.FNT
             }
 
             if (Header.Glyphs.BitsPerPixel == 4)
-                Tool.ArrayTool.ReverseByteInList(BMPdata);
+                Tools.ArrayTool.ReverseByteInList(BMPdata);
 
             Compressed.CompressData(BMPdata);
         }

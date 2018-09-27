@@ -1,4 +1,5 @@
-﻿using AuxiliaryLibraries.Extension;
+﻿using AuxiliaryLibraries.Extensions;
+using AuxiliaryLibraries.Tools;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -24,7 +25,7 @@ namespace AuxiliaryLibraries.GameFormat.FileContainer
 
         private void Open(byte[] data)
         {
-            using (BinaryReader reader = IO.IOTools.OpenReadFile(new MemoryStream(data), IsLittleEndian))
+            using (BinaryReader reader = IOTools.OpenReadFile(new MemoryStream(data), IsLittleEndian))
             {
                 List<int[]> Entry = new List<int[]>();
 
@@ -79,7 +80,7 @@ namespace AuxiliaryLibraries.GameFormat.FileContainer
         public byte[] GetData()
         {
             using (MemoryStream MS = new MemoryStream())
-            using (BinaryWriter writer = IO.IOTools.OpenWriteFile(MS, IsLittleEndian))
+            using (BinaryWriter writer = IOTools.OpenWriteFile(MS, IsLittleEndian))
             {
                 writer.BaseStream.Position = (SubFiles.Count + 1) * 12;
 
@@ -91,7 +92,7 @@ namespace AuxiliaryLibraries.GameFormat.FileContainer
                     Entry.Add(new int[] { FlagList[i], (int)writer.BaseStream.Position, temp.GetSize() });
 
                     writer.Write(temp.GetData());
-                    writer.Write(new byte[IO.IOTools.Alignment(writer.BaseStream.Position, 16)]);
+                    writer.Write(new byte[IOTools.Alignment(writer.BaseStream.Position, 16)]);
                 }
 
                 writer.BaseStream.Position = 0;

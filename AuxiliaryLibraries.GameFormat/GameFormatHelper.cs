@@ -1,4 +1,5 @@
-﻿using AuxiliaryLibraries.Extension;
+﻿using AuxiliaryLibraries.Extensions;
+using AuxiliaryLibraries.GameFormat.Other;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -63,7 +64,7 @@ namespace AuxiliaryLibraries.GameFormat
                 else if (type == FormatEnum.PTP)
                     Obj = new Text.PTP(data);
                 else if (type == FormatEnum.FNT)
-                    Obj = new Other.FNT.FNT(data);
+                    Obj = new FNT(data);
                 else if (type == FormatEnum.BVP)
                     Obj = new FileContainer.BVP(name, data);
                 else if (type == FormatEnum.TBL)
@@ -76,7 +77,7 @@ namespace AuxiliaryLibraries.GameFormat
                         Obj = new FileContainer.BIN(data);
                     }
                 else if (type == FormatEnum.FTD)
-                    Obj = new Text.FTD(data);
+                    Obj = new FTD(data);
                 else if (type == FormatEnum.DDS)
                     try
                     {

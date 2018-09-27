@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace AuxiliaryLibraries.GameFormat.Other.FNT
+namespace AuxiliaryLibraries.GameFormat.Other
 {
     public class Glyph
     {

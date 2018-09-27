@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace AuxiliaryLibraries.GameFormat.Other.FNT
+namespace AuxiliaryLibraries.GameFormat.Other
 {
     public struct VerticalCut
     {

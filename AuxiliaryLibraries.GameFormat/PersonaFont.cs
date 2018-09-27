@@ -1,12 +1,10 @@
-﻿using AuxiliaryLibraries.GameFormat.Other.FNT;
-using AuxiliaryLibraries.IO;
+﻿using AuxiliaryLibraries.GameFormat.Other;
 using AuxiliaryLibraries.Media;
-using AuxiliaryLibraries.Tool;
+using AuxiliaryLibraries.Tools;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Text;
 
 namespace AuxiliaryLibraries.GameFormat
 {

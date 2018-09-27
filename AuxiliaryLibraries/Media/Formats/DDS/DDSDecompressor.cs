@@ -6,35 +6,6 @@ namespace AuxiliaryLibraries.Media.Formats.DDS
 {
     public class DDSDecompressor
     {
-        // byte 8bit = (byte)((double)4bit * 255.0d / 15.0d + 0.5d);
-        private static byte[] Table4bitTo8bit = new byte[]
-        {
-            0,  17, 34, 51, 68, 85, 102,119,
-            136,153,170,187,204,221,238,255
-        };
-
-        // byte 8bit = (byte)((double)5bit * 255.0d / 31.0d + 0.5d);
-        private static byte[] Table5bitTo8bit = new byte[]
-        {
-            0  ,8  ,16 ,25 ,33 ,41 ,49 ,58 ,
-            66 ,74 ,82 ,90 ,99 ,107,115,123,
-            132,140,148,156,165,173,181,189,
-            197,206,214,222,230,239,247,255
-        };
-
-        // byte 8bit = (byte)((double)6bit * 255.0d / 63.0d + 0.5d);
-        private static byte[] Table6bitTo8bit = new byte[]
-        {
-            0  ,4  ,8  ,12 ,16 ,20 ,24 ,28 ,
-            32 ,36 ,40 ,45 ,49 ,53 ,57 ,61 ,
-            65 ,69 ,73 ,77 ,81 ,85 ,89 ,93 ,
-            97 ,101,105,109,113,117,121,125,
-            130,134,138,142,146,150,154,158,
-            162,166,170,174,178,182,186,190,
-            194,198,202,206,210,215,219,223,
-            227,231,235,239,243,247,251,255
-        };
-
         /// <summary>
         /// If returned true then newData is Bgra32.
         /// </summary>
@@ -140,8 +111,8 @@ namespace AuxiliaryLibraries.Media.Formats.DDS
 
             for (int i = 0; i < 8; i++)
             {
-                alpha[i * 2] = Table4bitTo8bit[data[dataIndex + i] & 0xF];
-                alpha[i * 2 + 1] = Table4bitTo8bit[(data[dataIndex + i] & 0xF0) >> 4];
+                alpha[i * 2] = BitHelper.Table4bitTo8bit[data[dataIndex + i] & 0xF];
+                alpha[i * 2 + 1] = BitHelper.Table4bitTo8bit[(data[dataIndex + i] & 0xF0) >> 4];
             }
 
             for (int i = 0; i < pixHeight; i++)
@@ -186,9 +157,9 @@ namespace AuxiliaryLibraries.Media.Formats.DDS
 
         private static void RGB565ToBGRA32(byte[,] palette, int paletteIndex, byte[] data, int dataIndex)
         {
-            palette[paletteIndex, 0] = Table5bitTo8bit[(data[dataIndex] & 31)];
-            palette[paletteIndex, 1] = Table6bitTo8bit[(data[dataIndex] >> 5) | ((data[dataIndex + 1] & 7) << 3)];
-            palette[paletteIndex, 2] = Table5bitTo8bit[(data[dataIndex + 1] >> 3)];
+            palette[paletteIndex, 0] = BitHelper.Table5bitTo8bit[(data[dataIndex] & 31)];
+            palette[paletteIndex, 1] = BitHelper.Table6bitTo8bit[(data[dataIndex] >> 5) | ((data[dataIndex + 1] & 7) << 3)];
+            palette[paletteIndex, 2] = BitHelper.Table5bitTo8bit[(data[dataIndex + 1] >> 3)];
             palette[paletteIndex, 3] = 0xFF;
         }
     }

@@ -53,7 +53,7 @@ namespace AuxiliaryLibraries.GameFormat.SpriteContainer
             using (BinaryReader reader = new BinaryReader(streamFile.Stream, Encoding.ASCII, true))
                 for (int i = 0; i < count; i++)
                 {
-                    reader.ReadInt32();
+                    int tag = reader.ReadInt32();
                     streamFile.Stream.Position += 4;
                     long texPos = reader.ReadUInt32();
                     int texSize = reader.ReadInt32();
@@ -62,7 +62,8 @@ namespace AuxiliaryLibraries.GameFormat.SpriteContainer
 
                     long tempPos = streamFile.Stream.Position;
                     streamFile.Stream.Position = texPos;
-                    var text = GameFormatHelper.OpenFile(name + ".dds", reader.ReadBytes(texSize), FormatEnum.DDS);                    
+                    var text = GameFormatHelper.OpenFile(name + ".dds", reader.ReadBytes(texSize), FormatEnum.DDS);
+                    text.Tag = tag;
                     SubFiles.Add(text);
                     streamFile.Stream.Position = tempPos;
                 }
@@ -127,7 +128,7 @@ namespace AuxiliaryLibraries.GameFormat.SpriteContainer
                 for (int i = 0; i < SubFiles.Count; i++)
                     if (SubFiles[i].Object is Sprite.DDS dds)
                     {
-                        writer.Write(i);
+                        writer.Write((int)SubFiles[i].Tag);
                         writer.Write(0);
                         writer.Write(pos[i]);
                         writer.Write(dds.GetSize());

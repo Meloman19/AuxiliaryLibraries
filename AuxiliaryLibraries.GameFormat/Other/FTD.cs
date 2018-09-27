@@ -1,12 +1,13 @@
-﻿using AuxiliaryLibraries.Extension;
+﻿using AuxiliaryLibraries.Extensions;
 using AuxiliaryLibraries.IO;
+using AuxiliaryLibraries.Tools;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace AuxiliaryLibraries.GameFormat.Text
+namespace AuxiliaryLibraries.GameFormat.Other
 {
     public class FTD : IGameFile
     {
@@ -178,8 +179,6 @@ namespace AuxiliaryLibraries.GameFormat.Text
 
                 if (type == 0)
                     GetT0(writer);
-                else if (type == 1)
-                    GetT1(writer);
 
                 returned = MS.ToArray();
             }
@@ -199,25 +198,6 @@ namespace AuxiliaryLibraries.GameFormat.Text
                 writer.Write(entry.Sum(x => x.Length));
                 writer.Write(entry.Length);
                 writer.BaseStream.Position += 4;
-                foreach (var part in entry)
-                    writer.Write(part);
-                writer.BaseStream.Position += IOTools.Alignment(writer.BaseStream.Position, 0x10);
-            }
-
-            writer.Write(new byte[IOTools.Alignment(writer.BaseStream.Position, 0x10)]);
-            writer.BaseStream.Position = 0x10;
-            newPos.ForEach(x => writer.Write(x));
-        }
-
-        private void GetT1(BinaryWriter writer)
-        {
-            List<int> newPos = new List<int>();
-            foreach (var entry in Entries)
-            {
-                newPos.Add((int)writer.BaseStream.Position);
-                writer.Write((byte)entry.Sum(x => x.Length));
-                writer.Write((byte)entry.Length);
-                writer.BaseStream.Position += 2;
                 foreach (var part in entry)
                     writer.Write(part);
                 writer.BaseStream.Position += IOTools.Alignment(writer.BaseStream.Position, 0x10);
