@@ -20,23 +20,5 @@
         </Grid.RowDefinitions>
 
         <Button Content="Click" Command="{Binding CommandAct}"/>
-
-        <Image Grid.Row="1" Stretch="Uniform">
-            <Image.Source>
-                <DrawingImage>
-                    <DrawingImage.Drawing>
-                        <ImageDrawing Rect="0,0,100,100" ImageSource="pack://siteoforigin:,,,/Resources/settings-work-tool.png" />
-                    </DrawingImage.Drawing>
-                    <!--<DrawingImage.Drawing>
-                        <DrawingGroup>
-                            <DrawingGroup.ClipGeometry>
-                                <RectangleGeometry Rect="{Binding ImageRect}"/>
-                            </DrawingGroup.ClipGeometry>
-                            
-                        </DrawingGroup>
-                    </DrawingImage.Drawing>-->
-                </DrawingImage>
-            </Image.Source>
-        </Image>
     </Grid>
 </Window>

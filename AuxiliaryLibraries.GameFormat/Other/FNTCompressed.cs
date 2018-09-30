@@ -2,112 +2,22 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
 namespace AuxiliaryLibraries.GameFormat.Other
 {
-    public class CompressedHeader
-    {
-        public CompressedHeader(BinaryReader reader)
-        {
-            HeaderSize = reader.ReadInt32();
-            DictionarySize = reader.ReadInt32();
-            CompressedBlockSize = reader.ReadInt32();
-            Unknown = reader.ReadInt32();
-            BytesPerGlyph = reader.ReadUInt16();
-            UnknownU = reader.ReadUInt16();
-            GlyphTableCount = reader.ReadInt32();
-            GlyphPosTableSize = reader.ReadInt32();
-            UncompressedFontSize = reader.ReadInt32();
-        }
-
-        public int HeaderSize { get; set; }
-        public int DictionarySize { get; set; }
-        public int CompressedBlockSize { get; set; }
-        public int Unknown { get; set; }
-        public ushort BytesPerGlyph { get; set; }
-        public ushort UnknownU { get; set; }
-        public int GlyphTableCount { get; set; }
-        public int GlyphPosTableSize { get; set; }
-        public int UncompressedFontSize { get; set; }
-
-        public void Resize(int size)
-        {
-            GlyphTableCount = size + 1;
-            GlyphPosTableSize = GlyphTableCount * 4;
-            UncompressedFontSize = size * BytesPerGlyph;
-        }
-
-        public void Get(BinaryWriter writer)
-        {
-            writer.Write(HeaderSize);
-            writer.Write(DictionarySize);
-            writer.Write(CompressedBlockSize);
-            writer.Write(Unknown);
-            writer.Write(BytesPerGlyph);
-            writer.Write(UnknownU);
-            writer.Write(GlyphTableCount);
-            writer.Write(GlyphPosTableSize);
-            writer.Write(UncompressedFontSize);
-        }
-    }
-
-    public class CompressedDictionary
-    {
-        public CompressedDictionary(BinaryReader reader, int size)
-        {
-            List<ushort[]> temp = new List<ushort[]>();
-            for (int i = 0; i < size / 6; i++)
-            {
-                ushort[] added = new ushort[3];
-                added[0] = reader.ReadUInt16();
-                added[1] = reader.ReadUInt16();
-                added[2] = reader.ReadUInt16();
-                temp.Add(added);
-            }
-            Dictionary = temp.ToArray();
-        }
-
-        public ushort[][] Dictionary { get; set; }
-
-        public void Get(BinaryWriter writer)
-        {
-            foreach (var b in Dictionary)
-                foreach (var a in b)
-                    writer.Write(a);
-        }
-    }
-
-    public class CompressedGlyphTable
-    {
-        public CompressedGlyphTable(BinaryReader reader, int count)
-        {
-            for (int i = 0; i < count; i++)
-                Table.Add(reader.ReadInt32());
-        }
-
-        public List<int> Table = new List<int>();
-
-        public void Get(BinaryWriter writer)
-        {
-            foreach (var a in Table)
-                writer.Write(a);
-        }
-    }
-
     public class FNTCompressed
     {
         public FNTCompressed(BinaryReader reader)
         {
-            Header = new CompressedHeader(reader);
-            Dictionary = new CompressedDictionary(reader, Header.DictionarySize);
-            GlyphTable = new CompressedGlyphTable(reader, Header.GlyphTableCount);
+            Header = new FNTCompressedHeader(reader);
+            Dictionary = new FNTCompressedDictionary(reader, Header.DictionarySize);
+            GlyphTable = new FNTCompressedGlyphTable(reader, Header.GlyphTableCount);
             CompressedData = reader.ReadBytes(Header.CompressedBlockSize);
         }
 
-        public CompressedHeader Header { get; set; }
-        public CompressedDictionary Dictionary { get; set; }
-        public CompressedGlyphTable GlyphTable { get; set; }
+        public FNTCompressedHeader Header { get; set; }
+        public FNTCompressedDictionary Dictionary { get; set; }
+        public FNTCompressedGlyphTable GlyphTable { get; set; }
         public byte[] CompressedData { get; set; }
 
         public void Resize(int size)

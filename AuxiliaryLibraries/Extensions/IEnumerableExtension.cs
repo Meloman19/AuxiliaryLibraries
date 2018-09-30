@@ -18,7 +18,7 @@ namespace AuxiliaryLibraries.Extensions
 
         static IEnumerable<T[]> SplitBase<T>(this IEnumerable<T> enumerable, Func<T, bool> predicate, bool include, bool first)
         {
-            List<T[]> returned = new List<T[]>();
+            //List<T[]> returned = new List<T[]>();
 
             List<T> temp = new List<T>();
 
@@ -31,21 +31,24 @@ namespace AuxiliaryLibraries.Extensions
                         if (first)
                         {
                             if (temp.Count > 0)
-                                returned.Add(temp.ToArray());
+                                yield return temp.ToArray();
+                            //returned.Add(temp.ToArray());                            
                             temp.Clear();
                             temp.Add(a);
                         }
                         else
                         {
                             temp.Add(a);
-                            returned.Add(temp.ToArray());
+                            yield return temp.ToArray();
+                            //returned.Add(temp.ToArray());
                             temp.Clear();
                         }
                     }
                     else
                     {
                         if (temp.Count > 0)
-                            returned.Add(temp.ToArray());
+                            yield return temp.ToArray();
+                        //returned.Add(temp.ToArray());
                         temp.Clear();
                     }
                 }
@@ -53,9 +56,10 @@ namespace AuxiliaryLibraries.Extensions
                     temp.Add(a);
             }
             if (temp.Count > 0)
-                returned.Add(temp.ToArray());
+                yield return temp.ToArray();
+            //returned.Add(temp.ToArray());
 
-            return returned.AsEnumerable();
+            //return returned.AsEnumerable();
         }
     }
 }

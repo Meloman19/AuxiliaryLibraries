@@ -1,6 +1,6 @@
 ﻿namespace AuxiliaryLibraries.GameFormat.Sprite
 {
-    public enum PixelFormatDDSAtlus : byte
+    public enum DDSAtlusPixelFormat : byte
     {
         Indexed8 = 0x81,
         Argb32 = 0x85,

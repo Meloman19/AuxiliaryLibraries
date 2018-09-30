@@ -141,12 +141,12 @@ namespace AuxiliaryLibraries.GameFormat.Sprite
                 if (ddsPF == DDSFourCC.NONE)
                 {
                     var PF = DDSHelper.DDSAtlusToPixelFormat(Header.PixelFormat);
-                    bitmap = new Bitmap(Header.Width, Header.Height, PF, dataList[0], null);
+                    bitmap = new Bitmap(Header.Width, Header.Height * Header.TileCount, PF, dataList[0], null);
                 }
                 else
                 {
-                    DDSDecompressor.DDSDecompress(Header.Width, Header.Height, dataList[0], ddsPF, out byte[] newData);
-                    bitmap = new Bitmap(Header.Width, Header.Height, PixelFormats.Bgra32, newData, null);
+                    DDSDecompressor.DDSDecompress(Header.Width, Header.Height * Header.TileCount, dataList[0], ddsPF, out byte[] newData);
+                    bitmap = new Bitmap(Header.Width, Header.Height * Header.TileCount, PixelFormats.Bgra32, newData, null);
                 }
             }
 
@@ -165,6 +165,7 @@ namespace AuxiliaryLibraries.GameFormat.Sprite
                 var PF = DDSHelper.DDSAtlusToPixelFormat(Header.PixelFormat);
                 if (bitmap.PixelFormat != PF)
                     bitmap = bitmap.ConvertTo(PF, null);
+                dataList[0] = bitmap.CopyData();
 
                 if (dataList.Count > 1)
                 {
@@ -174,6 +175,7 @@ namespace AuxiliaryLibraries.GameFormat.Sprite
             else
             {
                 DDSCompressor.DDSCompress(bitmap, ddsPF, out byte[] newData);
+                dataList[0] = newData;
 
                 if (dataList.Count > 1)
                 {
@@ -181,7 +183,7 @@ namespace AuxiliaryLibraries.GameFormat.Sprite
                     Bitmap temp = bitmap;
                     for (int i = 1; i < dataList.Count; i++)
                     {
-                        temp = lanczos.imageScale(bitmap, 0.5f, 0.5f);
+                        temp = lanczos.imageScale(temp, 0.5f, 0.5f);
                         DDSCompressor.DDSCompress(temp.Width, temp.Height, temp.CopyData(), ddsPF, out newData);
                         dataList[i] = newData;
                     }
@@ -190,6 +192,8 @@ namespace AuxiliaryLibraries.GameFormat.Sprite
 
             Header.SizeTexture = dataList.Sum(x => x.Length);
             Header.SizeWOHeader = Header.SizeTexture + (LastBlock == null ? 0 : LastBlock.Length);
+
+            this.bitmap = null;
         }
 
         #endregion IImage

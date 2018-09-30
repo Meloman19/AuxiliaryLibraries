@@ -7,7 +7,7 @@ namespace AuxiliaryLibraries.Media
 {
     internal static class PixelFormatHelper
     {
-        internal static int GetPixelFormatBPP(PixelFormatEnum pixelFormatEnum)
+        public static int GetPixelFormatBPP(PixelFormatEnum pixelFormatEnum)
         {
             switch (pixelFormatEnum)
             {
@@ -26,7 +26,7 @@ namespace AuxiliaryLibraries.Media
             }
         }
 
-        internal static bool GetPixelFormatIndexed(PixelFormatEnum pixelFormatEnum)
+        public static bool GetPixelFormatIndexed(PixelFormatEnum pixelFormatEnum)
         {
             switch (pixelFormatEnum)
             {
@@ -39,7 +39,7 @@ namespace AuxiliaryLibraries.Media
             }
         }
 
-        internal static byte ReverseByte(byte toReverse)
+        public static byte ReverseByte(byte toReverse)
         {
             int temp = ((toReverse >> 4) & 0xF) + ((toReverse & 0xF) << 4);
             return Convert.ToByte(temp);
@@ -56,7 +56,7 @@ namespace AuxiliaryLibraries.Media
         //     else
         //         return (byte)(0xFF - ((((float)original - 0x80) / 0x80) * 0xFF)); //wrap around
         // }
-        internal static byte[] AlphaPS2ToPC = new byte[]
+        public static byte[] AlphaPS2ToPC = new byte[]
         {
               0,   2,   4,   6,   8,  10,  12,  14,  16,  18,  20,  22,  24,  26,  28,  30,
              32,  34,  36,  38,  40,  42,  44,  46,  48,  50,  52,  54,  56,  58,  60,  62,
@@ -81,7 +81,7 @@ namespace AuxiliaryLibraries.Media
         // {
         //     return (byte)Math.Round((((float)original / 0xFF) * 0x80));
         // }
-        internal static byte[] AlphaPCToPS2 = new byte[]
+        public static byte[] AlphaPCToPS2 = new byte[]
         {
               0,   1,   1,   2,   2,   3,   3,   4,   4,   5,   5,   6,   6,   7,   7,   8,
               8,   9,   9,  10,  10,  11,  11,  12,  12,  13,  13,  14,  14,  15,  15,  16,
@@ -102,7 +102,7 @@ namespace AuxiliaryLibraries.Media
         };
 
         // byte 4bit = (byte)((double)8bit * 15d / 255d + 0.5d);
-        internal static byte[] Table8bitTo4bit = new byte[]
+        public static byte[] Table8bitTo4bit = new byte[]
         {
             0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,
             1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,2 ,2 ,2 ,2 ,2 ,2 ,
@@ -123,7 +123,7 @@ namespace AuxiliaryLibraries.Media
         };
 
         // byte 5bit = (byte)((double)8bit * 31d / 255d + 0.5d);
-        internal static byte[] Table8bitTo5bit = new byte[]
+        public static byte[] Table8bitTo5bit = new byte[]
         {
             0 ,0 ,0 ,0 ,0 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,1 ,2 ,2 ,2 ,
             2 ,2 ,2 ,2 ,2 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,3 ,4 ,4 ,4 ,
@@ -144,7 +144,7 @@ namespace AuxiliaryLibraries.Media
         };
 
         // byte 6bit = (byte)((double)8bit * 63d / 255d + 0.5d);
-        internal static byte[] Table8bitYo6bit = new byte[]
+        public static byte[] Table8bitYo6bit = new byte[]
         {
             0 ,0 ,0 ,1 ,1 ,1 ,1 ,2 ,2 ,2 ,2 ,3 ,3 ,3 ,3 ,4 ,
             4 ,4 ,4 ,5 ,5 ,5 ,5 ,6 ,6 ,6 ,6 ,7 ,7 ,7 ,7 ,8 ,
@@ -165,14 +165,14 @@ namespace AuxiliaryLibraries.Media
         };
 
         // byte 8bit = (byte)((double)4bit * 255.0d / 15.0d + 0.5d);
-        internal static byte[] Table4bitTo8bit = new byte[]
+        public static byte[] Table4bitTo8bit = new byte[]
         {
             0,  17, 34, 51, 68, 85, 102,119,
             136,153,170,187,204,221,238,255
         };
 
         // byte 8bit = (byte)((double)5bit * 255.0d / 31.0d + 0.5d);
-        internal static byte[] Table5bitTo8bit = new byte[]
+        public static byte[] Table5bitTo8bit = new byte[]
         {
             0  ,8  ,16 ,25 ,33 ,41 ,49 ,58 ,
             66 ,74 ,82 ,90 ,99 ,107,115,123,
@@ -181,7 +181,7 @@ namespace AuxiliaryLibraries.Media
         };
 
         // byte 8bit = (byte)((double)6bit * 255.0d / 63.0d + 0.5d);
-        internal static byte[] Table6bitTo8bit = new byte[]
+        public static byte[] Table6bitTo8bit = new byte[]
         {
             0  ,4  ,8  ,12 ,16 ,20 ,24 ,28 ,
             32 ,36 ,40 ,45 ,49 ,53 ,57 ,61 ,

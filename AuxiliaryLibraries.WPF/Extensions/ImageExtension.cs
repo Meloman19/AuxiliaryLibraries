@@ -11,11 +11,10 @@ namespace AuxiliaryLibraries.WPF.Extensions
             var height = image.PixelHeight;
             var bitPerPixel = image.Format.BitsPerPixel;
             var stride = image.Format.GetStride(width);
-
-            var LengthData = (height * width * bitPerPixel) / 8;
+            var LengthData = height * stride;
 
             var returned = new byte[LengthData];
-            image.CopyPixels(returned, stride, 0);
+            image.CopyPixels(returned, stride, 0);            
 
             return returned;
         }

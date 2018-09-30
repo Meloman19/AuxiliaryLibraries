@@ -5,19 +5,19 @@ namespace AuxiliaryLibraries.GameFormat.Sprite
 {
     public static class DDSHelper
     {
-        static Dictionary<PixelFormatDDSAtlus, Media.Formats.DDS.DDSFourCC> DDSAtlusToDDS = new Dictionary<PixelFormatDDSAtlus, Media.Formats.DDS.DDSFourCC>()
+        static Dictionary<DDSAtlusPixelFormat, Media.Formats.DDS.DDSFourCC> DDSAtlusToDDS = new Dictionary<DDSAtlusPixelFormat, Media.Formats.DDS.DDSFourCC>()
         {
-            { PixelFormatDDSAtlus.DXT1, Media.Formats.DDS.DDSFourCC.DXT1 },
-            { PixelFormatDDSAtlus.DXT3, Media.Formats.DDS.DDSFourCC.DXT3 },
-            { PixelFormatDDSAtlus.DXT5, Media.Formats.DDS.DDSFourCC.DXT5 }
+            { DDSAtlusPixelFormat.DXT1, Media.Formats.DDS.DDSFourCC.DXT1 },
+            { DDSAtlusPixelFormat.DXT3, Media.Formats.DDS.DDSFourCC.DXT3 },
+            { DDSAtlusPixelFormat.DXT5, Media.Formats.DDS.DDSFourCC.DXT5 }
         };
 
-        static Dictionary<PixelFormatDDSAtlus, PixelFormat> DDSAtlusToAux = new Dictionary<PixelFormatDDSAtlus, PixelFormat>()
+        static Dictionary<DDSAtlusPixelFormat, PixelFormat> DDSAtlusToAux = new Dictionary<DDSAtlusPixelFormat, PixelFormat>()
         {
-            { PixelFormatDDSAtlus.Argb32, PixelFormats.Argb32 }
+            { DDSAtlusPixelFormat.Argb32, PixelFormats.Argb32 }
         };
 
-        public static Media.Formats.DDS.DDSFourCC ConvertFromDDSAtlus(PixelFormatDDSAtlus nativePixelFormat)
+        public static Media.Formats.DDS.DDSFourCC ConvertFromDDSAtlus(DDSAtlusPixelFormat nativePixelFormat)
         {
             if (DDSAtlusToDDS.ContainsKey(nativePixelFormat))
                 return DDSAtlusToDDS[nativePixelFormat];
@@ -25,7 +25,7 @@ namespace AuxiliaryLibraries.GameFormat.Sprite
                 return Media.Formats.DDS.DDSFourCC.NONE;
         }
 
-        public static PixelFormat DDSAtlusToPixelFormat(PixelFormatDDSAtlus nativePixelFormat)
+        public static PixelFormat DDSAtlusToPixelFormat(DDSAtlusPixelFormat nativePixelFormat)
         {
             if (DDSAtlusToAux.ContainsKey(nativePixelFormat))
                 return DDSAtlusToAux[nativePixelFormat];

@@ -60,7 +60,7 @@ namespace AuxiliaryLibraries.Media
 
         public override BitmapDataBase Copy()
         {
-            return new BitmapDataUndefined(Width, Height, pixels.CopyArray());
+            return new BitmapDataUndefined(Width, Height, pixels.Copy());
         }
 
         public override byte[] GetData()
@@ -75,7 +75,7 @@ namespace AuxiliaryLibraries.Media
 
         public override Color[] GetPixels()
         {
-            return pixels.CopyArray();
+            return pixels.Copy();
         }
     }
 }

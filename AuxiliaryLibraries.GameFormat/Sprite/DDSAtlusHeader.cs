@@ -16,7 +16,7 @@ namespace AuxiliaryLibraries.GameFormat.Sprite
 
         public int HeaderSize { get; }
         public int SizeTexture { get; set; }
-        public PixelFormatDDSAtlus PixelFormat { get; }
+        public DDSAtlusPixelFormat PixelFormat { get; }
         public byte MipMapCount { get; }
         public byte Unknown0x1A { get; }
         public byte TileByte { get; private set; }
@@ -53,7 +53,7 @@ namespace AuxiliaryLibraries.GameFormat.Sprite
             // 0x10-0x20
             HeaderSize = reader.ReadInt32();
             SizeTexture = reader.ReadInt32();
-            PixelFormat = (PixelFormatDDSAtlus)reader.ReadByte();
+            PixelFormat = (DDSAtlusPixelFormat)reader.ReadByte();
             MipMapCount = reader.ReadByte();
             Unknown0x1A = reader.ReadByte();
             TileByte = reader.ReadByte();
@@ -71,7 +71,7 @@ namespace AuxiliaryLibraries.GameFormat.Sprite
 
             if (Tile)
             {
-                int BytePerBlock = PixelFormat == PixelFormatDDSAtlus.DXT1 ? 8 : 16;
+                int BytePerBlock = PixelFormat == DDSAtlusPixelFormat.DXT1 ? 8 : 16;
                 int size = Width * Height * BytePerBlock / 16;
                 TileCount = SizeTexture % size == 0 ? SizeTexture / size : throw new Exception("DDSAtlus: tile read error");
             }

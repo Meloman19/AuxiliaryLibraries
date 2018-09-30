@@ -138,7 +138,7 @@ namespace AuxiliaryLibraries.GameFormat.Other
 
                 if ((i + 1) % 16 == 0)
                 {
-                    offset += stridenew * (Header.Glyphs.Size2 - 1);
+                    offset += stridenew * (Header.Glyphs.Size2 - 1) + stride;
                 }
                 else
                     offset += stride;

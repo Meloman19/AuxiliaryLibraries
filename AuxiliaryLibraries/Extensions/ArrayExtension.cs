@@ -6,17 +6,9 @@ namespace AuxiliaryLibraries.Extensions
 {
     public static class ArrayExtension
     {
-        public static T[] CopyArray<T>(this T[] array)
+        public static T[] Copy<T>(this T[] array)
         {
             T[] returned = new T[array.Length];
-            array.CopyTo(returned, 0);
-            return returned;
-        }
-
-        public static byte[] Copy(this byte[] array)
-        {
-            byte[] returned = new byte[array.Length];
-            Buffer.BlockCopy(array, 0, returned, 0, array.Length);
             array.CopyTo(returned, 0);
             return returned;
         }

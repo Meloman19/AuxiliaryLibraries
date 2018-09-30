@@ -88,7 +88,7 @@ namespace AuxiliaryLibraries.Media
             => bitmapDataBase.GetPixels();
 
         public Color[] CopyPalette()
-            => bitmapDataBase.GetPalette()?.CopyArray();
+            => bitmapDataBase.GetPalette()?.Copy();
 
         #region Public Properties
 

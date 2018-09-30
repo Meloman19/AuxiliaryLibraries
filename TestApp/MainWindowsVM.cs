@@ -1,8 +1,15 @@
 ﻿using AuxiliaryLibraries.WPF;
+using AuxiliaryLibraries.WPF.Extensions;
+using AuxiliaryLibraries.WPF.Wrapper;
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Xml.Linq;
 
 namespace TestApp
 {
@@ -11,6 +18,9 @@ namespace TestApp
         public MainWindowsVM()
         {
             CommandAct = new RelayCommand(command);
+
+            AuxiliaryLibraries.GameFormat.Sprite.DDSAtlus atlus = new AuxiliaryLibraries.GameFormat.Sprite.DDSAtlus(File.ReadAllBytes(@"d:\Visual Studio 2017\Project\rain_c_map.dds"));
+            atlus.SetBitmap(AuxiliaryLibraries.WPF.Tools.ImageTools.OpenPNG(@"d:\Visual Studio 2017\Project\rain_c_map.png").GetBitmap());
 
         }
 

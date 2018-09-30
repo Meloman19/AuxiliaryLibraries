@@ -65,6 +65,8 @@ namespace AuxiliaryLibraries.GameFormat
                     Obj = new Text.PTP(data);
                 else if (type == FormatEnum.FNT)
                     Obj = new FNT(data);
+                else if (type == FormatEnum.FNT0)
+                    Obj = new FNT0(data);
                 else if (type == FormatEnum.BVP)
                     Obj = new FileContainer.BVP(name, data);
                 else if (type == FormatEnum.TBL)
@@ -100,6 +102,15 @@ namespace AuxiliaryLibraries.GameFormat
             }
         }
 
+        public static ObjectContainer OpenFile(string name, byte[] data)
+        {
+            var format = GetFormat(data);
+            if (format == FormatEnum.Unknown)
+                format = GetFormat(name);
+
+            return OpenFile(name, data, format);
+        }
+
         public static FormatEnum GetFormat(string name)
         {
             string ext = Path.GetExtension(name).ToLower().TrimEnd(' ');
@@ -113,7 +124,11 @@ namespace AuxiliaryLibraries.GameFormat
         {
             if (data.Length >= 0xc)
             {
-                byte[] buffer = data.SubArray(8, 4);
+                byte[] buffer = data.SubArray(0, 4);
+                if (buffer.SequenceEqual(new byte[] { 0x46, 0x4E, 0x54, 0x30 }))
+                    return FormatEnum.FNT0;
+
+                buffer = data.SubArray(8, 4);
                 if (buffer.SequenceEqual(new byte[] { 0x31, 0x47, 0x53, 0x4D }) | buffer.SequenceEqual(new byte[] { 0x4D, 0x53, 0x47, 0x31 }))
                     return FormatEnum.BMD;
                 else if (buffer.SequenceEqual(new byte[] { 0x54, 0x4D, 0x58, 0x30 }))

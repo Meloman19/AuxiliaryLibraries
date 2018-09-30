@@ -35,7 +35,7 @@ namespace AuxiliaryLibraries.Media
                     for (int k = 0; k < palette.Length; k++)
                     {
                         var dist = ColorDistance(palette[k], pixels[i]);
-                        if(dist == 0)
+                        if (dist == 0)
                         {
                             tempInd = k;
                             break;
@@ -96,7 +96,7 @@ namespace AuxiliaryLibraries.Media
                     remain = 8 - (bit - remain);
                     returned[ind] = (byte)((data & Mask[bit - remain]) << remain);
                 }
-             
+
 
                 if ((i + 1) % pixelWidth == 0)
                 {
@@ -109,6 +109,22 @@ namespace AuxiliaryLibraries.Media
             }
 
             return returned;
+        }
+
+        public static Color[] GetGrayPalette(int count)
+        {
+            if (count < 1 | count > 8)
+                throw new ArgumentOutOfRangeException("count", count, "count must be between 1 and 8");
+
+            int colorCount = (int)Math.Pow(2, count);
+            int step = (int)Math.Pow(2, 8 - count);
+
+            Color[] palette = new Color[colorCount];
+
+            for (int i = 0, k = 0; i < 256; i += step, k++)
+                palette[k] = Color.FromArgb(i, i, i);
+
+            return palette;
         }
     }
 }

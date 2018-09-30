@@ -11,21 +11,21 @@ namespace AuxiliaryLibraries
 {
     public struct ImageData
     {
-        public struct Rect
-        {
-            public Rect(int x, int y, int width, int height)
-            {
-                X = x;
-                Y = y;
-                Width = width;
-                Height = height;
-            }
+        //public struct Rect
+        //{
+        //    public Rect(int x, int y, int width, int height)
+        //    {
+        //        X = x;
+        //        Y = y;
+        //        Width = width;
+        //        Height = height;
+        //    }
 
-            public int X { get; private set; }
-            public int Y { get; private set; }
-            public int Width { get; private set; }
-            public int Height { get; private set; }
-        }
+        //    public int X { get; private set; }
+        //    public int Y { get; private set; }
+        //    public int Width { get; private set; }
+        //    public int Height { get; private set; }
+        //}
 
         private byte[][] Pixels;
         public byte[] Data
@@ -202,9 +202,9 @@ namespace AuxiliaryLibraries
                                 ImageData glyph = new ImageData(Glyph.Item1, personaFont.PixelFormat, personaFont.Width, personaFont.Height);
                                 byte Left = Glyph.Item2.Left;
                                 byte Right = Glyph.Item2.Right;
-                                glyph = shiftb == false ? ImageData.Crop(glyph, new ImageData.Rect(Left, 0, Right - Left, glyph.PixelHeight))
-                                    : ImageData.Shift(ImageData.Crop(glyph, new ImageData.Rect(Left, 0, Right - Left, glyph.PixelHeight)), shift);
-                                line = ImageData.MergeLeftRight(line, glyph, 1);
+                                glyph = shiftb == false ? Crop(glyph, new Rectangle(Left, 0, Right - Left, glyph.PixelHeight))
+                                    : ImageData.Shift(Crop(glyph, new Rectangle(Left, 0, Right - Left, glyph.PixelHeight)), shift);
+                                line = MergeLeftRight(line, glyph, 1);
                             }
                         }
                     }
@@ -286,7 +286,7 @@ namespace AuxiliaryLibraries
             return new ImageData(buffer, up.PixelFormat, buffer[0].Length, buffer.Length);
         }
 
-        public static ImageData Crop(ImageData image, Rect rect)
+        public static ImageData Crop(ImageData image, Rectangle rect)
         {
             if (image.Pixels == null)
                 return new ImageData();
@@ -410,7 +410,7 @@ namespace AuxiliaryLibraries
             return returned;
         }
 
-        static byte[][] GetCropPixels(byte[][] buffer, Rect rect)
+        static byte[][] GetCropPixels(byte[][] buffer, Rectangle rect)
         {
             byte[][] returned = new byte[rect.Height][];
             for (int i = 0; i < returned.Length; i++)

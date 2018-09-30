@@ -137,6 +137,9 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\settings-work-tool.png" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\AuxiliaryLibraries.GameFormat\AuxiliaryLibraries.GameFormat.csproj">
       <Project>{c6ba79f6-0718-46e0-9a2f-ff4a54902d74}</Project>
       <Name>AuxiliaryLibraries.GameFormat</Name>
@@ -153,9 +156,6 @@
       <Project>{4b93f3ac-a73e-4271-8c32-4ad009a43b98}</Project>
       <Name>AuxiliaryLibraries</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\settings-work-tool.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Microsoft.Packaging.Tools.Trimming.1.1.0-preview1-26619-01\build\Microsoft.Packaging.Tools.Trimming.targets" Condition="Exists('..\packages\Microsoft.Packaging.Tools.Trimming.1.1.0-preview1-26619-01\build\Microsoft.Packaging.Tools.Trimming.targets')" />

@@ -88,7 +88,11 @@ namespace AuxiliaryLibraries.WPF.Wrapper
                 return new AuxiliaryLibraries.Media.Bitmap(bitmapSource.PixelWidth, bitmapSource.PixelHeight,
                 pix, bitmapSource.GetData(), colors);
             }
-            return null;
+            else
+            {
+                FormatConvertedBitmap formatConvertedBitmap = new FormatConvertedBitmap(bitmapSource, PixelFormats.Bgra32, null, 0);
+                return formatConvertedBitmap.GetBitmap();
+            }
         }
     }
 }

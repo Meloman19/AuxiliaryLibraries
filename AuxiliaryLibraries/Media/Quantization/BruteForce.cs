@@ -33,7 +33,7 @@ namespace AuxiliaryLibraries.Media.Quantization
 
         public Color[] GetQuantPalette()
         {
-            return palette.CopyArray();
+            return palette.Copy();
         }
 
         public void StartQuantization()

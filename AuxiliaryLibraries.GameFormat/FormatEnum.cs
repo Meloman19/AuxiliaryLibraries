@@ -11,6 +11,7 @@
         BMD,
         PTP,
         FNT,
+        FNT0,
         BVP,
         TBL,
         DAT,
