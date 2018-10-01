@@ -551,11 +551,11 @@ namespace AuxiliaryLibraries.GameFormat.Text
             //    }
         }
 
-        public void ImportText(string[][] text, Encoding encoding, PersonaFont personaFont, int width)
+        public void ImportText(string[][] text, Dictionary<char, int> charWidth, int width)
         {
             ImportText(text, (str, msg) =>
             {
-                return str.SplitByWidth(encoding, personaFont, width);
+                return str.SplitByWidth(charWidth, width);
             });
             //foreach (var line in text)
             //    if (line.Length == 3)

@@ -168,74 +168,83 @@ namespace AuxiliaryLibraries.GameFormat.Text
             }
         }
 
-        public static string SplitByWidth(this string String, Encoding FontMap, PersonaFont Font, int width)
+        public static string SplitByWidth(this string String, Dictionary<char, int> charWidth, int width)
         {
-            string returned = String.Join(" ", Regex.Split(String, @"\\n|\r\n|\r|\n"));
+            var temp = GetStringWidth(String, charWidth);
+            List<string> tempStr = temp.Item1;
+            List<int> tempWidth = temp.Item2;
 
-            List<TextBaseElement> temp = returned.GetTextBaseList(FontMap);
-            List<int> widthlist = new List<int>();
-
-            foreach (var a in temp)
-            {
-                if (a.IsText)
-                    for (int i = 0; i < a.Array.Length; i++)
-                    {
-                        VerticalCut verticalCut = new VerticalCut();
-                        if (a.Array[i] == 0x20)
-                        {
-                            widthlist.Add(9);
-                            continue;
-                        }
-                        else if (0x20 < a.Array[i] & a.Array[i] < 0x80)
-                            verticalCut = Font.GetVerticalCut(a.Array[i]);
-                        else if (0x80 <= a.Array[i] & a.Array[i] < 0xF0)
-                        {
-                            int newindex = (a.Array[i] - 0x81) * 0x80 + a.Array[i + 1] + 0x20;
-                            i++;
-                            verticalCut = Font.GetVerticalCut(newindex);
-                        }
-
-                        if (verticalCut.Right - verticalCut.Left > 0)
-                            widthlist.Add(verticalCut.Right - verticalCut.Left - 1);
-                        else
-                            widthlist.Add(verticalCut.Right - verticalCut.Left);
-                    }
-                else
-                    widthlist.AddRange(new int[a.GetSystem().Length]);
-            }
-
-            int index = 0;
+            List<string> result = new List<string>();
+            string input = "";
             int widthsum = 0;
-            while (index < widthlist.Count)
+            for (int i = 0; i < tempStr.Count; i++)
             {
-                if (widthsum + widthlist[index] <= width)
+                if (widthsum == 0)
                 {
-                    widthsum += widthlist[index];
-                    index++;
+                    if (tempStr[i] != " ")
+                    {
+                        widthsum += tempWidth[i];
+                        input += tempStr[i];
+                    }
                 }
                 else
                 {
-                    bool te = true;
-                    while (index != 0 & te)
+                    if (widthsum + tempWidth[i] > width)
                     {
-                        if (widthlist[index - 1] != 0 & returned[index - 1] == ' ')
-                        {
-                            returned = returned.Insert(index, "\n");
-                            widthlist.Insert(index, 0);
-                            te = false;
-                        }
-                        index--;
+                        result.Add(input);
+                        i--;
+                        widthsum = 0;
+                        input = "";
                     }
-                    widthsum = 0;
+                    else
+                    {
+                        widthsum += tempWidth[i];
+                        input += tempStr[i];
+                    }
                 }
             }
+            if (input != "")
+                result.Add(input);
 
-            return returned;
+            return string.Join("\n", result);
         }
 
         public static string SplitByLineCount(this string String, Dictionary<char, int> charWidth, int lineCount)
         {
-            string input = String.Join(" ", Regex.Split(String, @"\r\n|\r|\n"));
+            var temp = GetStringWidth(String, charWidth);
+
+            List<string> tempStr = temp.Item1;
+            List<int> tempWidth = temp.Item2;
+
+            List<int> indexies = new List<int>();
+            List<string> returned = new List<string>();
+            int width = tempWidth.Sum() / lineCount;
+            int tempwidth = 0;
+            int tempind = 0;
+            for (int i = 0; i < tempWidth.Count; i++)
+            {
+                if (tempwidth + tempWidth[i] > width)
+                {
+                    indexies.Add(tempind);
+                    tempind = i + 1;
+                    tempwidth = 0;
+                    if (indexies.Count == lineCount)
+                        break;
+                }
+                else
+                    tempwidth += tempWidth[i];
+            }
+            if (indexies.Count != lineCount)
+                indexies.Add(tempind);
+
+            var splitedByLineCount = String.Join("\n", tempStr.ToArray().SplitArray(indexies.ToArray()).Select(x => String.Join("", x)).Select(x => x.TrimStart(' ')));
+
+            return splitedByLineCount;
+        }
+
+        private static (List<string>, List<int>) GetStringWidth(string str, Dictionary<char, int> charWidth)
+        {
+            string input = String.Join(" ", Regex.Split(str, @"\\n|\r\n|\r|\n"));
 
             List<string> tempStr = new List<string>();
             List<bool> tempBool = new List<bool>();
@@ -280,30 +289,7 @@ namespace AuxiliaryLibraries.GameFormat.Text
                 }
             }
 
-            List<int> indexies = new List<int>();
-            List<string> returned = new List<string>();
-            int width = tempWidth.Sum() / lineCount;
-            int tempwidth = 0;
-            int tempind = 0;
-            for (int i = 0; i < tempWidth.Count; i++)
-            {
-                if (tempwidth + tempWidth[i] > width)
-                {
-                    indexies.Add(tempind);
-                    tempind = i + 1;
-                    tempwidth = 0;
-                    if (indexies.Count == lineCount)
-                        break;
-                }
-                else
-                    tempwidth += tempWidth[i];
-            }
-            if (indexies.Count != lineCount)
-                indexies.Add(tempind);
-
-            var splitedByLineCount = String.Join("\n", tempStr.ToArray().SplitArray(indexies.ToArray()).Select(x => String.Join("", x)).Select(x => x.TrimStart(' ')));
-
-            return splitedByLineCount;
+            return (tempStr, tempWidth);
         }
 
         public static List<byte[]> SplitSourceBytes(this byte[] B)

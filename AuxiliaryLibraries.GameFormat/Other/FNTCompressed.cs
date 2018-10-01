@@ -30,7 +30,6 @@ namespace AuxiliaryLibraries.GameFormat.Other
             List<byte[]> returned = new List<byte[]>();
             List<byte> Decompress = new List<byte>();
 
-
             int temp = 0;
 
             for (int i = 0; i < CompressedData.Length; i++)
@@ -53,6 +52,8 @@ namespace AuxiliaryLibraries.GameFormat.Other
                     }
                 }
             }
+            if (Decompress.Count == Header.BytesPerGlyph)
+                returned.Add(Decompress.ToArray());
 
             return returned;
         }

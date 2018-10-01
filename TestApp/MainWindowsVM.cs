@@ -1,4 +1,5 @@
-﻿using AuxiliaryLibraries.WPF;
+﻿using AuxiliaryLibraries.GameFormat.Other;
+using AuxiliaryLibraries.WPF;
 using AuxiliaryLibraries.WPF.Extensions;
 using AuxiliaryLibraries.WPF.Wrapper;
 using System;
@@ -18,10 +19,6 @@ namespace TestApp
         public MainWindowsVM()
         {
             CommandAct = new RelayCommand(command);
-
-            AuxiliaryLibraries.GameFormat.Sprite.DDSAtlus atlus = new AuxiliaryLibraries.GameFormat.Sprite.DDSAtlus(File.ReadAllBytes(@"d:\Visual Studio 2017\Project\rain_c_map.dds"));
-            atlus.SetBitmap(AuxiliaryLibraries.WPF.Tools.ImageTools.OpenPNG(@"d:\Visual Studio 2017\Project\rain_c_map.png").GetBitmap());
-
         }
 
         public ICommand CommandAct { get; }
