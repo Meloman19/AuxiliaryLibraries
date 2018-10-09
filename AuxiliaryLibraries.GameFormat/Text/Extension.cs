@@ -186,6 +186,11 @@ namespace AuxiliaryLibraries.GameFormat.Text
                         widthsum += tempWidth[i];
                         input += tempStr[i];
                     }
+                    else if (i + 1 < tempStr.Count & tempStr[i + 1].Equals("{0A}", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        widthsum += tempWidth[i];
+                        input += tempStr[i];
+                    }
                 }
                 else
                 {

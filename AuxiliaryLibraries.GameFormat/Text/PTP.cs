@@ -477,7 +477,7 @@ namespace AuxiliaryLibraries.GameFormat.Text
                 return -1;
         }
 
-        public string[] ExportTXT(string PTPname, bool removesplit, Encoding Old)
+        public string[] ExportTXT(bool removesplit, Encoding Old)
         {
             List<string> list = new List<string>();
             foreach (var a in msg)
@@ -486,15 +486,15 @@ namespace AuxiliaryLibraries.GameFormat.Text
                 {
                     string OldName = "";
                     if (a.Type == "SEL")
-                        OldName += "<SELECT>\t";
+                        OldName += "<SELECT>";
                     else
                     {
                         var name = names.FirstOrDefault(x => x.Index == a.CharacterIndex);
-                        OldName += name == null ? "<EMPTY>\t" : name.OldName.GetTextBaseList().GetString(Old, false).Replace("\n", " ") + "\t";
+                        OldName += name == null ? "<EMPTY>" : name.OldName.GetTextBaseList().GetString(Old, false).Replace("\n", " ");
                     }
-                    string OldText = removesplit ? b.OldString.GetString(Old, removesplit).Replace("\n", " ") + "\t" : b.OldString.GetString(Old, removesplit).Replace("\n", "\\n");
+                    string OldText = removesplit ? b.OldString.GetString(Old, removesplit).Replace("\n", " ") : b.OldString.GetString(Old, removesplit).Replace("\n", "\\n");
 
-                    string returned = $"{PTPname}\t{a.Index}\t{b.Index}\t{OldName}\t{OldText}\t";
+                    string returned = $"{a.Index}\t{b.Index}\t{OldName}\t{OldText}\t";
 
                     list.Add(returned);
                 }
@@ -513,6 +513,10 @@ namespace AuxiliaryLibraries.GameFormat.Text
             }
         }
 
+        /// <summary>
+        /// Import text As Is (replace \n to line break).
+        /// </summary>
+        /// <param name="text">Each element is array: msg's index, string's index and new text.</param>
         public void ImportText(string[][] text)
         {
             ImportText(text, (str, msg) =>
@@ -521,6 +525,11 @@ namespace AuxiliaryLibraries.GameFormat.Text
             });
         }
 
+        /// <summary>
+        /// Import text in accordance with line count (all \n is removed).
+        /// </summary>
+        /// <param name="text">Each element is array: msg's index, string's index and new text.</param>
+        /// <param name="charWidth">The dictionary, where the key is a symbol, and the value is the width of the symbol.</param>
         public void ImportText(string[][] text, Dictionary<char, int> charWidth)
         {
             ImportText(text, (str, msg) =>
@@ -532,40 +541,33 @@ namespace AuxiliaryLibraries.GameFormat.Text
 
                 return str.SplitByLineCount(charWidth, count);
             });
-
-            //foreach (var line in text)
-            //    if (line.Length == 3)
-            //    {
-            //        if (int.TryParse(line[0], out int msgInd) && int.TryParse(line[1], out int strInd))
-            //        {
-            //            if (msg.Count > msgInd && msg[msgInd].Strings.Count > strInd)
-            //            {
-            //                int count = 1;
-            //                foreach (var a in msg[msgInd].Strings[strInd].OldString)
-            //                    if (a.Array.Contains<byte>(0x0A))
-            //                        count++;
-
-            //                msg[msgInd].Strings[strInd].NewString = line[2].SplitByLineCount(charWidth, count);
-            //            }
-            //        }
-            //    }
         }
 
+        /// <summary>
+        /// Import text in accordance with screen width (all \n is removed).
+        /// </summary>
+        /// <param name="text">Each element is array: msg's index, string's index and new text.</param>
+        /// <param name="charWidth">The dictionary, where the key is a symbol, and the value is the width of the symbol.</param>
+        /// <param name="width">Target screen width</param>
         public void ImportText(string[][] text, Dictionary<char, int> charWidth, int width)
         {
             ImportText(text, (str, msg) =>
             {
                 return str.SplitByWidth(charWidth, width);
             });
-            //foreach (var line in text)
-            //    if (line.Length == 3)
-            //    {
-            //        if (int.TryParse(line[0], out int msgInd) && int.TryParse(line[1], out int strInd))
-            //        {
-            //            if (msg.Count > msgInd && msg[msgInd].Strings.Count > strInd)
-            //                msg[msgInd].Strings[strInd].NewString = line[2].SplitByWidth(encoding, personaFont, width);
-            //        }
-            //    }
+        }
+
+        public void ImportTextLBL(string[] text)
+        {
+            int index = 0;
+            foreach (var a in msg)
+                foreach (var b in a.Strings)
+                {
+                    b.NewString = text[index];
+                    index++;
+                    if (index >= text.Length)
+                        return;
+                }
         }
 
         private void ImportText(string[][] text, Func<string, MSGstr, string> func)

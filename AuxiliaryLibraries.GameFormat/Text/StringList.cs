@@ -26,9 +26,13 @@ namespace AuxiliaryLibraries.GameFormat.Text
 
         public Encoding DestEncoding { get; set; } = Encoding.ASCII;
 
-        public StringList(string file, Encoding srcEncoding)
+        public StringList(string file, Encoding srcEncoding) : this(File.ReadAllBytes(file), srcEncoding)
         {
-            List<byte[]> List = SplitByNull(File.ReadAllBytes(file));
+        }
+
+        public StringList(byte[] data, Encoding srcEncoding)
+        {
+            List<byte[]> List = SplitByNull(data);
             foreach (var a in List)
                 this.List.Add(new Element(a.Length, srcEncoding.GetString(a.Where(x => x != 0).ToArray())));
         }
