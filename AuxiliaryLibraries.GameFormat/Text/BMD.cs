@@ -1,4 +1,4 @@
-﻿using AuxiliaryLibraries.Extensions;
+using AuxiliaryLibraries.Extensions;
 using AuxiliaryLibraries.IO;
 using AuxiliaryLibraries.Tools;
 using System;
@@ -378,12 +378,12 @@ namespace AuxiliaryLibraries.GameFormat.Text
 
                 int LastBlockPos = (int)BW.BaseStream.Position;
 
-                byte[] LastBlockBytes = getLastBlock(LastBlock);
-                BW.Write(LastBlockBytes);
+                byte[] ptrDiffSection = CreatePointersDiffSection(LastBlock);
+                BW.Write(ptrDiffSection);
 
                 BW.BaseStream.Position = 0x10;
                 BW.Write((int)LastBlockPos);
-                BW.Write((int)LastBlockBytes.Length);
+                BW.Write((int)ptrDiffSection.Length);
 
                 BW.BaseStream.Position = 0x4;
                 BW.Write((int)BW.BaseStream.Length);
@@ -396,73 +396,77 @@ namespace AuxiliaryLibraries.GameFormat.Text
                 // return new MemoryStream(buffer);
             }
 
-            static byte[] getLastBlock(List<int> Addresses)
+            /// <summary>
+            /// Create the section with the information to jump from
+            /// pointer to pointer. That is, the difference between pointer
+            /// positions.
+            /// </summary>
+            /// <param name="pointers">
+            /// List of addresses where each pointer is written.
+            /// </param>
+            /// <returns>Bytes of the section.</returns>
+            static byte[] CreatePointersDiffSection(IList<int> pointers)
             {
-                int sum = 0;
-                List<byte> returned = new List<byte>();
+                List<byte> encodedDiffs = new List<byte>();
+                for (int i = 0; i < pointers.Count; i++) {
+                    // Consecutive pointers
+                    int consecutive = 0;
+                    for (int j = i; j > 0 && j < pointers.Count; j++) {
+                        int diff = pointers[j] - pointers[j - 1];
 
-                for (int i = 0; i < Addresses.Count; i++)
-                {
-                    int reloc = Addresses[i] - sum - 0x20;
-                    int amount = getSeq(ref Addresses, i);
-                    Encode(reloc, ref returned, ref sum);
-                    if (amount > 1)
-                    {
-                        reloc = 7;
-                        reloc |= ((amount - 2) / 2) << 4;
-
-                        if (amount % 2 == 1)
-                        {
-                            reloc |= 8;
+                        // Pointers are 32-bits so they are consecutive if the
+                        // different of their position is their size.
+                        if (diff == sizeof(UInt32))
+                            consecutive++;
+                        else
+                            break;
                         }
 
-                        returned.Add((byte)reloc);
-                        i += amount;
-                        sum += amount * 4;
-                    }
-                }
+                    if (consecutive >= 2) {
+                        // If there are more than 2 consecutive pointers
+                        // encoded the number of them.
+                        // The maximum is 2^(8 bits - 3 bits flag) + 2 constant
+                        consecutive = (consecutive > 33) ? 33 : consecutive;
 
-                return returned.ToArray();
+                        int encoded = ((consecutive - 2) << 3) | 0b111;
+                        encodedDiffs.Add((byte)encoded);
+
+                        // Skip the encoding of those consecutive pointers
+                        // (the loop will increase one already)
+                        i += (consecutive - 1);
+                    } else {
+                        // We encode the distance with the previous pointer.
+                        // The first pointer is relative to the start of the
+                        // section at 0x20.
+                        int prevPtr = (i > 0) ? pointers[i - 1] : 0x20;
+                        int diff = pointers[i] - prevPtr;
+
+                        // We encode the multiple of 4
+                        diff /= 4;
+
+                        // Check how may bytes we need to encoded the diff.
+                        if (diff < 128) {
+                            // Distance fits in 1 byte (1 bit of flag)
+                            int encoded = (diff << 1) | 0b0;
+                            encodedDiffs.Add((byte)encoded);
+                        } else if (diff < 16384) {
+                            // Distance fits in 2 bytes (2 bits of flag)
+                            int encoded = (diff << 2) | 0b01;
+                            encodedDiffs.Add((byte)(encoded & 0xFF));
+                            encodedDiffs.Add((byte)(encoded >> 8));
+                        } else if (diff < 2097152) {
+                            // Distance fits in 3 bytes (3 bits of flag)
+                            int encoded = (diff << 3) | 0b011;
+                            encodedDiffs.Add((byte)(encoded & 0xFF));
+                            encodedDiffs.Add((byte)((encoded >> 8) & 0xFF));
+                            encodedDiffs.Add((byte)(encoded >> 16));
+                        } else {
+                            throw new FormatException("Pointer difference too big");
             }
-
-            static int getSeq(ref List<int> Addresses, int index)
-            {
-                if (index < Addresses.Count - 1)
-                {
-                    if (Addresses[index + 1] - Addresses[index] == 4)
-                        return getSeq(ref Addresses, index + 1) + 1;
-                    else
-                        return 0;
-                }
-                return 0;
-            }
-
-            static void Encode(int reloc, ref List<byte> LastBlock, ref int sum)
-            {
-                if (reloc % 2 == 0)
-                {
-                    int temp = reloc >> 1;
-                    if (temp <= 0xFF)
-                    {
-                        LastBlock.Add((byte)temp);
                     }
-                    else
-                    {
-                        byte item = (byte)((reloc & 0xff) + 1);
-                        byte num2 = (byte)((reloc & 0xff00) >> 8);
-                        LastBlock.Add(item);
-                        LastBlock.Add(num2);
                     }
 
-                }
-                else
-                {
-                    byte item = (byte)((reloc & 0xff) + 1);
-                    byte num2 = (byte)((reloc & 0xff00) >> 8);
-                    LastBlock.Add(item);
-                    LastBlock.Add(num2);
-                }
-                sum += reloc;
+                return encodedDiffs.ToArray();
             }
         }
 
