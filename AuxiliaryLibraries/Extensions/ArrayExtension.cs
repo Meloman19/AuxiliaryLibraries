@@ -62,8 +62,8 @@ namespace AuxiliaryLibraries.Extensions
                 yield return temp;
             }
 
-            T[] temp2 = new T[array.Length - pos.Last()];
-            Array.Copy(array, pos.Last(), temp2, 0, temp2.Length);
+            T[] temp2 = new T[array.Length - pos[pos.Length - 1]];
+            Array.Copy(array, pos[pos.Length - 1], temp2, 0, temp2.Length);
             yield return temp2;
         }
     }

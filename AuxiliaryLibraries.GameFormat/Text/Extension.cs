@@ -114,14 +114,68 @@ namespace AuxiliaryLibraries.GameFormat.Text
             return returned;
         }
 
-        public static void ParseStrings(this IList<MSGstr> Strings, byte[] SourceBytes)
+        public static void ParseStrings(this IList<PTPMSGstr> Strings, byte[][] SourceBytes)
+        {
+            Strings.Clear();
+
+            int Index = 0;
+            foreach (var Bytes in SourceBytes)
+            {
+                PTPMSGstr MSG = new PTPMSGstr(Index, "");
+
+                List<TextBaseElement> temp = Bytes.GetTextBaseList();
+
+                int tempdown = 0;
+                int temptop = temp.Count;
+
+                for (int i = 0; i < temp.Count; i++)
+                {
+                    if (temp[i].IsText)
+                    {
+                        tempdown = i;
+                        i = temp.Count;
+                    }
+                    else
+                        MSG.Prefix.Add(temp[i]);
+                }
+
+                if (MSG.Prefix.Count < temp.Count)
+                {
+                    for (int i = temp.Count - 1; i >= tempdown; i--)
+                    {
+                        if (temp[i].IsText)
+                        {
+                            temptop = i;
+                            i = 0;
+                        }
+                        else
+                            MSG.Postfix.Add(temp[i]);
+                    }
+
+                    var temparray = MSG.Postfix.Reverse().ToList();
+
+                    MSG.Postfix.Clear();
+                    foreach (var a in temparray)
+                        MSG.Postfix.Add(a);
+
+
+                    for (int i = tempdown; i <= temptop; i++)
+                        MSG.OldString.Add(temp[i]);
+                }
+
+                Strings.Add(MSG);
+                Index++;
+            }
+        }
+
+        public static void ParseStrings(this IList<PTPMSGstr> Strings, byte[] SourceBytes)
         {
             Strings.Clear();
 
             int Index = 0;
             foreach (var Bytes in SplitSourceBytes(SourceBytes))
             {
-                MSGstr MSG = new MSGstr(Index, "");
+                PTPMSGstr MSG = new PTPMSGstr(Index, "");
 
                 List<TextBaseElement> temp = Bytes.GetTextBaseList();
 
@@ -373,7 +427,7 @@ namespace AuxiliaryLibraries.GameFormat.Text
         {
             List<byte> temp = new List<byte>();
             foreach (var a in ByteCollection)
-                temp.AddRange(a.Array.ToArray());
+                temp.AddRange(a.Array);
             return temp.ToArray();
         }
     }

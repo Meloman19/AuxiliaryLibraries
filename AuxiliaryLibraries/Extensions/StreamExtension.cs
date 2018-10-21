@@ -17,6 +17,13 @@ namespace AuxiliaryLibraries.Extensions
                 BW.Write((byte)0);
         }
 
+        public static void WriteString(this BinaryWriter writer, string str, Encoding encoding, int length)
+        {
+            byte[] buffer = new byte[length];
+            encoding.GetBytes(str, 0, str.Length, buffer, 0);
+            writer.Write(buffer);
+        }
+
         public static int[] ReadInt32Array(this BinaryReader BR, int count)
         {
             int[] returned = new int[count];

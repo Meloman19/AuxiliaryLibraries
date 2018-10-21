@@ -1,8 +1,6 @@
-﻿using AuxiliaryLibraries.IO;
-using AuxiliaryLibraries.Tools;
+﻿using AuxiliaryLibraries.Tools;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -10,210 +8,6 @@ using System.Xml.Linq;
 
 namespace AuxiliaryLibraries.GameFormat.Text
 {
-    public struct TextBaseElement
-    {
-        public TextBaseElement(bool isText, byte[] array)
-        {
-            Array = array;
-            IsText = isText;
-        }
-
-        public string GetText(Encoding encoding, bool linesplit = false)
-        {
-            if (IsText)
-                return String.Concat(encoding.GetChars(Array));
-            else
-            {
-                if (Array[0] == 0x0A)
-                    if (linesplit)
-                        return "\n";
-                    else
-                        return GetSystem();
-                else
-                    return GetSystem();
-            }
-        }
-
-        public string GetSystem()
-        {
-            string returned = "";
-
-            if (Array.Length > 0)
-            {
-                returned += "{" + Convert.ToString(Array[0], 16).PadLeft(2, '0').ToUpper();
-                for (int i = 1; i < Array.Length; i++)
-                    returned += " " + Convert.ToString(Array[i], 16).PadLeft(2, '0').ToUpper();
-
-                returned += "}";
-            }
-
-            return returned;
-        }
-
-        public bool IsText { get; }
-        public byte[] Array { get; }
-    }
-
-    public class PTPName
-    {
-        public PTPName(int index, string oldName, string newName)
-        {
-            Index = index;
-            NewName = newName;
-            OldName = StringTool.SplitString(oldName, '-');
-        }
-
-        public PTPName(int index, byte[] oldName, string newName)
-        {
-            Index = index;
-            NewName = newName;
-            OldName = oldName;
-        }
-
-        public PTPName() { }
-
-        public int Index { get; set; }
-        public byte[] OldName { get; set; }
-        public string NewName { get; set; }
-    }
-
-    public class MSGstr
-    {
-        public MSGstr(int index, string newstring)
-        {
-            Index = index;
-            NewString = newstring;
-        }
-
-        public MSGstr(int index, string newstring, byte[] Prefix, byte[] OldString, byte[] Postfix) : this(index, newstring)
-        {
-            List<TextBaseElement> temp = Prefix.GetTextBaseList();
-            foreach (var a in temp)
-                this.Prefix.Add(a);
-
-            temp = OldString.GetTextBaseList();
-            foreach (var a in temp)
-                this.OldString.Add(a);
-
-            temp = Postfix.GetTextBaseList();
-            foreach (var a in temp)
-                this.Postfix.Add(a);
-        }
-
-        public byte[] GetOld()
-        {
-            List<byte> returned = new List<byte>();
-            returned.AddRange(Prefix.GetByteArray());
-            returned.AddRange(OldString.GetByteArray());
-            returned.AddRange(Postfix.GetByteArray());
-            return returned.ToArray();
-        }
-
-        public byte[] GetNew(Encoding New)
-        {
-            List<byte> returned = new List<byte>();
-            returned.AddRange(Prefix.GetByteArray());
-            returned.AddRange(NewString.GetTextBaseList(New).GetByteArray().ToArray());
-            returned.AddRange(Postfix.GetByteArray());
-            return returned.ToArray();
-        }
-
-        public bool MovePrefixDown()
-        {
-            if (Prefix.Count == 0)
-                return false;
-
-            var temp = Prefix[Prefix.Count - 1];
-            Prefix.RemoveAt(Prefix.Count - 1);
-            OldString.Insert(0, temp);
-            return true;
-        }
-
-        public bool MovePrefixUp()
-        {
-            if (OldString.Count == 0)
-                return false;
-
-            var temp = OldString[0];
-
-            if (temp.IsText)
-                return false;
-
-            Prefix.Add(temp);
-            OldString.RemoveAt(0);
-            return true;
-        }
-
-        public bool MovePostfixDown()
-        {
-            if (OldString.Count == 0)
-                return false;
-
-            var temp = OldString[OldString.Count - 1];
-
-            if (temp.IsText)
-                return false;
-
-            Postfix.Insert(0, temp);
-            OldString.RemoveAt(OldString.Count - 1);
-            return true;
-        }
-
-        public bool MovePostfixUp()
-        {
-            if (Postfix.Count == 0)
-                return false;
-
-            var temp = Postfix[0];
-            Postfix.RemoveAt(0);
-
-            OldString.Add(temp);
-            return true;
-        }
-
-        public int Index { get; set; }
-        public int CharacterIndex { get; set; }
-        public BindingList<TextBaseElement> Prefix { get; } = new BindingList<TextBaseElement>();
-        public BindingList<TextBaseElement> OldString { get; } = new BindingList<TextBaseElement>();
-        public BindingList<TextBaseElement> Postfix { get; } = new BindingList<TextBaseElement>();
-        public string NewString { get; set; } = "";
-    }
-
-    public class MSG
-    {
-        public MSG(int index, string type, string name, int charindex)
-        {
-            Index = index;
-            Type = type;
-            Name = name;
-            CharacterIndex = charindex;
-        }
-
-        public byte[] GetOld()
-        {
-            List<byte> returned = new List<byte>();
-            foreach (var a in Strings)
-                returned.AddRange(a.GetOld());
-            return returned.ToArray();
-        }
-
-        public byte[] GetNew(Encoding New)
-        {
-            List<byte> returned = new List<byte>();
-            foreach (var a in Strings)
-                returned.AddRange(a.GetNew(New));
-            return returned.ToArray();
-        }
-
-        public int Index { get; set; }
-        public string Type { get; set; }
-        public string Name { get; set; }
-        public int CharacterIndex { get; set; }
-        public byte[] MsgBytes { get; set; }
-
-        public BindingList<MSGstr> Strings { get; } = new BindingList<MSGstr>();
-    }
-
     public class PTP : IGameFile
     {
         public PTP(byte[] data)
@@ -231,29 +25,30 @@ namespace AuxiliaryLibraries.GameFormat.Text
 
         public PTP(BMD bmd)
         {
-            foreach (var NAME in bmd.Name)
-            {
-                int Index = NAME.Index;
-                byte[] OldNameSource = NAME.NameBytes;
-                string NewName = "";
+            foreach (var name in bmd.Name)
+                names.Add(new PTPName
+                {
+                    Index = name.Index,
+                    OldName = name.NameBytes
+                });
 
-                names.Add(new PTPName(Index, OldNameSource, NewName));
-            }
-
-            foreach (var Message in bmd.Msg)
+            foreach (var msgs in bmd.Msg)
             {
-                int Index = Message.Index;
-                string Type = Message.Type.ToString();
-                string Name = Message.Name;
-                int CharacterNameIndex = Message.CharacterIndex;
-                MSG temp = new MSG(Index, Type, Name, CharacterNameIndex);
-                temp.Strings.ParseStrings(Message.MsgBytes);
+                var temp = new PTPMSG
+                {
+                    Index = msgs.Index,
+                    Type = msgs.Type,
+                    Name = msgs.Name,
+                    CharacterIndex = msgs.NameIndex
+                };
+
+                temp.Strings.ParseStrings(msgs.MsgStrings);
                 msg.Add(temp);
             }
         }
 
         public List<PTPName> names { get; } = new List<PTPName>();
-        public List<MSG> msg { get; } = new List<MSG>();
+        public List<PTPMSG> msg { get; } = new List<PTPMSG>();
 
         bool Open(Stream stream)
         {
@@ -289,12 +84,11 @@ namespace AuxiliaryLibraries.GameFormat.Text
                     for (int i = 0; i < MSGCount; i++)
                     {
                         int type = reader.ReadInt32();
-                        string Type = type == 0 ? "MSG" : "SEL";
                         byte[] buffer = reader.ReadBytes(24);
                         string Name = Encoding.ASCII.GetString(buffer.Where(x => x != 0).ToArray());
                         int StringCount = reader.ReadInt16();
                         int CharacterIndex = reader.ReadInt16();
-                        MSG mSG = new MSG(i, Type, Name, CharacterIndex);
+                        PTPMSG mSG = new PTPMSG(i, type, Name, CharacterIndex);
 
                         for (int k = 0; k < StringCount; k++)
                         {
@@ -314,7 +108,7 @@ namespace AuxiliaryLibraries.GameFormat.Text
                             string NewString = Encoding.UTF8.GetString(reader.ReadBytes(size));
                             stream.Position += IOTools.Alignment(stream.Position, 16);
 
-                            mSG.Strings.Add(new MSGstr(k, NewString, Prefix, OldString, Postfix) { CharacterIndex = CharacterIndex });
+                            mSG.Strings.Add(new PTPMSGstr(k, NewString, Prefix, OldString, Postfix) { CharacterIndex = CharacterIndex });
                         }
 
                         msg.Add(mSG);
@@ -344,7 +138,7 @@ namespace AuxiliaryLibraries.GameFormat.Text
                     Str.NewString = Str.OldString.GetString(Old, true);
         }
 
-        public void OpenPTP0(BinaryReader reader)
+        private void OpenPTP0(BinaryReader reader)
         {
             reader.ReadInt32();
             int MSGPos = reader.ReadInt32();
@@ -370,12 +164,11 @@ namespace AuxiliaryLibraries.GameFormat.Text
             for (int i = 0; i < MSGCount; i++)
             {
                 int type = reader.ReadInt32();
-                string Type = type == 0 ? "MSG" : "SEL";
                 byte[] buffer = reader.ReadBytes(24);
                 string Name = Encoding.ASCII.GetString(buffer.Where(x => x != 0).ToArray());
                 int StringCount = reader.ReadInt16();
                 int CharacterIndex = reader.ReadInt16();
-                MSG mSG = new MSG(i, Type, Name, CharacterIndex);
+                PTPMSG mSG = new PTPMSG(i, type, Name, CharacterIndex);
 
                 for (int k = 0; k < StringCount; k++)
                 {
@@ -395,14 +188,14 @@ namespace AuxiliaryLibraries.GameFormat.Text
                     string NewString = Encoding.UTF8.GetString(reader.ReadBytes(size));
                     reader.BaseStream.Position += IOTools.Alignment(reader.BaseStream.Position, 16);
 
-                    mSG.Strings.Add(new MSGstr(k, NewString, Prefix, OldString, Postfix) { CharacterIndex = CharacterIndex });
+                    mSG.Strings.Add(new PTPMSGstr(k, NewString, Prefix, OldString, Postfix) { CharacterIndex = CharacterIndex });
                 }
 
                 msg.Add(mSG);
             }
         }
 
-        public void OpenXmlPTP(Stream stream)
+        private void OpenXmlPTP(Stream stream)
         {
             XDocument xDoc = XDocument.Load(stream, LoadOptions.PreserveWhitespace);
 
@@ -420,11 +213,11 @@ namespace AuxiliaryLibraries.GameFormat.Text
             foreach (var Message in MSG1Doc.Element("MSG").Elements())
             {
                 int Index = Convert.ToInt32(Message.Attribute("Index").Value);
-                string Type = Message.Element("Type").Value;
+                int Type = Message.Element("Type").Value == "MSG" ? 0 : 1;
                 string Name = Message.Element("Name").Value;
                 int CharacterNameIndex = Convert.ToInt32(Message.Element("CharacterNameIndex").Value);
 
-                MSG temp = new MSG(Index, Type, Name, CharacterNameIndex);
+                PTPMSG temp = new PTPMSG(Index, Type, Name, CharacterNameIndex);
                 msg.Add(temp);
 
                 foreach (var Strings in Message.Element("MessageStrings").Elements())
@@ -432,7 +225,7 @@ namespace AuxiliaryLibraries.GameFormat.Text
                     int StringIndex = Convert.ToInt32(Strings.Attribute("Index").Value);
                     string NewString = Strings.Element("NewString").Value;
 
-                    MSGstr temp2 = new MSGstr(StringIndex, NewString) { CharacterIndex = CharacterNameIndex };
+                    PTPMSGstr temp2 = new PTPMSGstr(StringIndex, NewString) { CharacterIndex = CharacterNameIndex };
                     temp.Strings.Add(temp2);
 
                     foreach (var Prefix in Strings.Elements("PrefixBytes"))
@@ -465,7 +258,7 @@ namespace AuxiliaryLibraries.GameFormat.Text
             }
         }
 
-        public static int GetVersion(BinaryReader reader)
+        private static int GetVersion(BinaryReader reader)
         {
             long temp = reader.BaseStream.Position;
             reader.BaseStream.Position = 0;
@@ -485,7 +278,7 @@ namespace AuxiliaryLibraries.GameFormat.Text
                 foreach (var b in a.Strings)
                 {
                     string OldName = "";
-                    if (a.Type == "SEL")
+                    if (a.Type == 1)
                         OldName += "<SELECT>";
                     else
                     {
@@ -570,7 +363,7 @@ namespace AuxiliaryLibraries.GameFormat.Text
                 }
         }
 
-        private void ImportText(string[][] text, Func<string, MSGstr, string> func)
+        private void ImportText(string[][] text, Func<string, PTPMSGstr, string> func)
         {
             foreach (var line in text)
                 if (line.Length == 3)
@@ -610,7 +403,7 @@ namespace AuxiliaryLibraries.GameFormat.Text
                     long MSGPos = MS.Position;
                     foreach (var a in msg)
                     {
-                        writer.Write(a.Type == "MSG" ? 0 : 1);
+                        writer.Write(a.Type);
                         buffer = new byte[24];
                         Encoding.ASCII.GetBytes(a.Name, 0, a.Name.Length, buffer, 0);
                         writer.Write(buffer);

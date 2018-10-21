@@ -1,4 +1,5 @@
 ﻿using AuxiliaryLibraries.GameFormat.Other;
+using AuxiliaryLibraries.GameFormat.Text;
 using AuxiliaryLibraries.WPF;
 using AuxiliaryLibraries.WPF.Extensions;
 using AuxiliaryLibraries.WPF.Wrapper;
@@ -19,6 +20,33 @@ namespace TestApp
         public MainWindowsVM()
         {
             CommandAct = new RelayCommand(command);
+
+            BMD bMD = new BMD(File.ReadAllBytes(@"d:\PS2\Other\DATA EDIT\Text\1.BMD"));
+            File.WriteAllBytes(@"d:\PS2\Other\DATA EDIT\Text\2.BMD", bMD.GetData());
+
+            //test();
+        }
+
+        private void test()
+        {
+            string path = @"d:\PS2\Persona 3\DATA\";
+
+            foreach (var file in Directory.EnumerateFiles(path, "*.*", SearchOption.AllDirectories))
+            {
+                var a = AuxiliaryLibraries.GameFormat.GameFormatHelper.OpenFile(Path.GetFileName(file), File.ReadAllBytes(file));
+                if (a.Object != null)
+                {
+                    //var b = a.GetAllObjectFiles(AuxiliaryLibraries.GameFormat.FormatEnum.BMD);
+
+                    //foreach(var bmd in b)
+                    //{
+                    //    var current = bmd.Object as BMD;
+
+                    //    foreach(var msg in current.Msg)
+                    //        foreach(var str in msg.M)
+                    //}
+                }
+            }
         }
 
         public ICommand CommandAct { get; }
