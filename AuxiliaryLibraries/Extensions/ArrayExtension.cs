@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace AuxiliaryLibraries.Extensions
 {
@@ -32,25 +31,6 @@ namespace AuxiliaryLibraries.Extensions
             T[] result = new T[length];
             Array.Copy(data, index, result, 0, length);
             return result;
-        }
-
-        public static List<T[]> SplitArray<T>(this T[] array, int[] pos)
-        {
-            List<T[]> returned = new List<T[]>();
-
-
-            for (int i = 0; i < pos.Length - 1; i++)
-            {
-                T[] temp = new T[pos[i + 1] - pos[i]];
-                Array.Copy(array, pos[i], temp, 0, temp.Length);
-                returned.Add(temp);
-            }
-
-            T[] temp2 = new T[array.Length - pos.Last()];
-            Array.Copy(array, pos.Last(), temp2, 0, temp2.Length);
-            returned.Add(temp2);
-
-            return returned;
         }
 
         public static IEnumerable<T[]> Split<T>(this T[] array, int[] pos)

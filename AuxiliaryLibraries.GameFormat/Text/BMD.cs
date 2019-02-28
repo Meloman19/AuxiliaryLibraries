@@ -252,7 +252,10 @@ namespace AuxiliaryLibraries.GameFormat.Text
                 {
                     LastBlock.Add((int)MS.Position);
                     writer.Write(MSG_offset);
-                    MSG_offset += name.NameBytes.Length + 1;
+                    if (name.NameBytes.Length == 0)
+                        MSG_offset += 2;
+                    else
+                        MSG_offset += name.NameBytes.Length + 1;
                 }
 
                 #endregion

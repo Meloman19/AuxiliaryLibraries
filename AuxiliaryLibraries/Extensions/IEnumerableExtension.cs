@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace AuxiliaryLibraries.Extensions
 {
@@ -31,8 +30,7 @@ namespace AuxiliaryLibraries.Extensions
                         if (first)
                         {
                             if (temp.Count > 0)
-                                yield return temp.ToArray();
-                            //returned.Add(temp.ToArray());                            
+                                yield return temp.ToArray();                        
                             temp.Clear();
                             temp.Add(a);
                         }
@@ -40,7 +38,6 @@ namespace AuxiliaryLibraries.Extensions
                         {
                             temp.Add(a);
                             yield return temp.ToArray();
-                            //returned.Add(temp.ToArray());
                             temp.Clear();
                         }
                     }
@@ -48,7 +45,6 @@ namespace AuxiliaryLibraries.Extensions
                     {
                         if (temp.Count > 0)
                             yield return temp.ToArray();
-                        //returned.Add(temp.ToArray());
                         temp.Clear();
                     }
                 }
@@ -57,9 +53,6 @@ namespace AuxiliaryLibraries.Extensions
             }
             if (temp.Count > 0)
                 yield return temp.ToArray();
-            //returned.Add(temp.ToArray());
-
-            //return returned.AsEnumerable();
         }
     }
 }

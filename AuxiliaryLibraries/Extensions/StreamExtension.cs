@@ -8,14 +8,6 @@ namespace AuxiliaryLibraries.Extensions
 {
     public static class StreamExtension
     {
-        public static void WriteString(this BinaryWriter BW, string String, int Length)
-        {
-            byte[] buffer = Encoding.ASCII.GetBytes(String);
-            BW.Write(buffer);
-
-            for (int i = 0; i < Length - String.Length; i++)
-                BW.Write((byte)0);
-        }
 
         public static void WriteString(this BinaryWriter writer, string str, Encoding encoding, int length)
         {
@@ -24,12 +16,18 @@ namespace AuxiliaryLibraries.Extensions
             writer.Write(buffer);
         }
 
-        public static int[] ReadInt32Array(this BinaryReader BR, int count)
+        /// <summary>
+        /// Read one-dimensional array of Int32.
+        /// </summary>
+        /// <param name="binaryReader"></param>
+        /// <param name="length">Array's length.</param>
+        /// <returns>One-dimensional array of Int32</returns>
+        public static int[] ReadInt32Array(this BinaryReader binaryReader, int length)
         {
-            int[] returned = new int[count];
+            int[] returned = new int[length];
 
-            for (int i = 0; i < count; i++)
-                returned[i] = BR.ReadInt32();
+            for (int i = 0; i < length; i++)
+                returned[i] = binaryReader.ReadInt32();
 
             return returned;
         }

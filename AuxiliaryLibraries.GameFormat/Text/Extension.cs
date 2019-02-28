@@ -296,7 +296,7 @@ namespace AuxiliaryLibraries.GameFormat.Text
             if (indexies.Count != lineCount)
                 indexies.Add(tempind);
 
-            var splitedByLineCount = String.Join("\n", tempStr.ToArray().SplitArray(indexies.ToArray()).Select(x => String.Join("", x)).Select(x => x.TrimStart(' ')));
+            var splitedByLineCount = String.Join("\n", tempStr.ToArray().Split(indexies.ToArray()).Select(x => String.Join("", x)).Select(x => x.TrimStart(' ')));
 
             return splitedByLineCount;
         }

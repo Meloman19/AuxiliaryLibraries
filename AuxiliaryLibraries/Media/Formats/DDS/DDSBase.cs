@@ -107,8 +107,17 @@ namespace AuxiliaryLibraries.Media.Formats.DDS
 
         public Bitmap GetBitmap()
         {
-            DDSDecompressor.DDSDecompress(Header.Width, Header.Height, dataList[0], Header.PixelFormat.FourCC, out byte[] newData);
-            return new Bitmap(Header.Width, Header.Height, PixelFormats.Bgra32, newData, null);
+            if (Header.PixelFormat.PixelFlags == PixelFormatFlags.DDPF_FOURCC)
+            {
+                DDSDecompressor.DDSDecompress(Header.Width, Header.Height, dataList[0], Header.PixelFormat.FourCC, out byte[] newData);
+                return new Bitmap(Header.Width, Header.Height, PixelFormats.Bgra32, newData, null);
+            }
+            else if (Header.PixelFormat.PixelFlags == PixelFormatFlags.DDPF_RGBA)
+            {
+                return new Bitmap(Header.Width, Header.Height, PixelFormats.Rgba32, dataList[0], null);
+            }
+
+            return null;
         }
 
         public void SetBitmap(Bitmap bitmap)

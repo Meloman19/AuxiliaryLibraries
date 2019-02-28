@@ -20,5 +20,6 @@
         </Grid.RowDefinitions>
 
         <Button Content="Click" Command="{Binding CommandAct}"/>
+        <TextBox IsReadOnly="True" Grid.Row="1" Text="{Binding Log}"/>
     </Grid>
 </Window>
