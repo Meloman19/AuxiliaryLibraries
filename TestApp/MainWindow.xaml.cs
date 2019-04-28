@@ -7,7 +7,6 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using AuxiliaryLibraries.GameFormat.Sprite;
 using AuxiliaryLibraries.WPF.Wrapper;
 
 namespace TestApp
@@ -69,16 +68,7 @@ namespace TestApp
 
         private void Window_Drop(object sender, DragEventArgs e)
         {
-            string[] path = (string[])e.Data.GetData("FileDrop");
-
-            DDS dDS = new DDS(File.ReadAllBytes(path[0]));
-
-            var temp = new BitmapImage(new Uri(@"d:\PS3\Textures\гот\ps3\title\ps3_tittle_01.png"));
-            dDS.SetBitmap(temp.GetBitmap());
-
-            // IMG.Source = dDS.GetBitmap().GetBitmapSource();
-
-
+           
         }
     }
 }

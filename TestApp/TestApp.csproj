@@ -176,10 +176,6 @@
     <None Include="Resources\settings-work-tool.png" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AuxiliaryLibraries.GameFormat\AuxiliaryLibraries.GameFormat.csproj">
-      <Project>{c6ba79f6-0718-46e0-9a2f-ff4a54902d74}</Project>
-      <Name>AuxiliaryLibraries.GameFormat</Name>
-    </ProjectReference>
     <ProjectReference Include="..\AuxiliaryLibraries.WPF.Wrapper\AuxiliaryLibraries.WPF.Wrapper.csproj">
       <Project>{0a70017f-e0fa-4266-87dc-7337ba58a234}</Project>
       <Name>AuxiliaryLibraries.WPF.Wrapper</Name>
